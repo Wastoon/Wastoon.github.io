@@ -46,7 +46,14 @@
 
   
   <url>
-    <loc>https://wastoon.github.io/tags/ButterFly%E6%A0%87%E7%AD%BE%EF%BC%8C-%E5%8D%9A%E5%AE%A2%E6%AD%A3%E6%96%87%E7%BE%8E%E5%8C%96/</loc>
+    <loc>https://wastoon.github.io/tags/ButterFly%E6%A0%87%E7%AD%BE/</loc>
+    <lastmod>2021-11-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://wastoon.github.io/tags/%E5%8D%9A%E5%AE%A2%E6%AD%A3%E6%96%87%E7%BE%8E%E5%8C%96/</loc>
     <lastmod>2021-11-17</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
