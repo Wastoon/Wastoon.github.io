@@ -1,0 +1,421 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>多视图几何（二） | KMnO4的行云小扎</title><meta name="keywords" content="计算机视觉,SFM"><meta name="author" content="KMnO4"><meta name="copyright" content="KMnO4"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Chapter 2 Representing a Moving Scene2.0 Overview2.0.1 The Origins of 3D ReconstructionThe goal to reconstrcut the 3D structure of the world from a set of 2-D views has a long history in computer visi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="多视图几何（二）">
+<meta property="og:url" content="https://wastoon.github.io/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%8C%EF%BC%89/index.html">
+<meta property="og:site_name" content="KMnO4的行云小扎">
+<meta property="og:description" content="Chapter 2 Representing a Moving Scene2.0 Overview2.0.1 The Origins of 3D ReconstructionThe goal to reconstrcut the 3D structure of the world from a set of 2-D views has a long history in computer visi">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://wastoon.github.io/img/MVG-2-cover.png">
+<meta property="article:published_time" content="2022-02-23T10:59:40.000Z">
+<meta property="article:modified_time" content="2022-02-23T11:45:54.843Z">
+<meta property="article:author" content="KMnO4">
+<meta property="article:tag" content="计算机视觉">
+<meta property="article:tag" content="SFM">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://wastoon.github.io/img/MVG-2-cover.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://wastoon.github.io/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%8C%EF%BC%89/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><meta/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '多视图几何（二）',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-02-23 19:45:54'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const fontSizeVal = saveToLocal.get('global-font-size')
+    if (fontSizeVal !== undefined) {
+      document.documentElement.style.setProperty('--global-font-size', fontSizeVal + 'px')
+    }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-butterfly-clock/lib/clock.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/l-lin/font-awesome-animation/dist/font-awesome-animation.min.css" media="defer" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-butterfly-tag-plugins-plus@latest/lib/tag_plugins.min.css" media="defer" onload="this.media='all'"><script async src="https://cdn.jsdelivr.net/npm/hexo-butterfly-tag-plugins-plus@latest/lib/carousel-touch.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-filter-gitcalendar/lib/gitcalendar.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/icon.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 网站统计</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 自留地</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 吉他谱</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> Movie</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 嗑盐&amp;摸鱼</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 文献</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 经典开源项目</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 个人项目</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/MVG-2-cover.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">KMnO4的行云小扎</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 网站统计</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 自留地</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 吉他谱</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> Movie</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 嗑盐&amp;摸鱼</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 文献</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 经典开源项目</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 个人项目</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">多视图几何（二）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-02-23T10:59:40.000Z" title="发表于 2022-02-23 18:59:40">2022-02-23</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-02-23T11:45:54.843Z" title="更新于 2022-02-23 19:45:54">2022-02-23</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/">计算机视觉</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/SFM/">SFM</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">3.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>21分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="多视图几何（二）"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="Chapter-2-Representing-a-Moving-Scene"><a href="#Chapter-2-Representing-a-Moving-Scene" class="headerlink" title="Chapter 2 Representing a Moving Scene"></a>Chapter 2 Representing a Moving Scene</h1><h2 id="2-0-Overview"><a href="#2-0-Overview" class="headerlink" title="2.0 Overview"></a>2.0 Overview</h2><h3 id="2-0-1-The-Origins-of-3D-Reconstruction"><a href="#2-0-1-The-Origins-of-3D-Reconstruction" class="headerlink" title="2.0.1 The Origins of 3D Reconstruction"></a>2.0.1 The Origins of 3D Reconstruction</h3><p>The goal to reconstrcut the 3D structure of the world from a set of 2-D views has a long history in computer vision. It is a classical <code>ill-posed problem</code>, because the reconstruction consistent with a given set of observations&#x2F;images is typically not unique. Therefore, one will need to impose additional assumations. Mathematically, the study of geometric relations between a 3D scene and the observed 2D projections is based on two types of transformations, namely:</p>
+<ul>
+<li><code>Euclidean motion</code> or <code>rigid-body motion</code> representing the motion of the camera from one frame to the next.</li>
+<li><code>Perspective projection</code> to account for the image formation process (see pinhole camera, etc).</li>
+</ul>
+<p>The notion of perspective projection has its roots among the ancient Greeks and the Renaissance period. The study of perspective projection lead to the field of <code>projective geometry</code>. </p>
+<p>The joint estimation of camera mation and 3D location is called <code>structure and motion</code> or <code>visual SLAM</code>.</p>
+<h3 id="2-0-2-Three-Dimension-Euclidean-Space"><a href="#2-0-2-Three-Dimension-Euclidean-Space" class="headerlink" title="2.0.2 Three-Dimension Euclidean Space"></a>2.0.2 Three-Dimension Euclidean Space</h3><p>The three-dimension Euclidedan space $\mathbb{E}^3$ consists of all points $p\in \mathbb{E}^3$ characterized by coordinates<br>$$<br>\bold{X} \equiv (X_1, X_2, X_3)^T \in \mathbb{R}^3,<br>$$<br>such that $\mathbb{E}^3$ can be identified with $\mathbb{R}^3$. That means we talk about points ($\mathbb{E}^3$) and coordinates ($\mathbb{R}^3$) as if they were the same thing. Given two points $\bold{X}$ and $\bold{Y}$, ont can define a <code>bound vector</code> as<br>$$<br>v &#x3D; \bold{Y}-\bold{X} \in \mathbb{R}^3.<br>$$</p>
+<p>Considering this vector independent of its base point $\bold{Y}$ makes it a <code>free vector</code>. The set of free vectors $v\in \mathbb{R}^3$ forms a linear vector space. By identifying $\mathbb{E}^3$ and $\mathbb{R}^3$, one can endow $\mathbb{E}^3$ with a scalar product, a norm and a metric. This allows to compute <code>distances, curve length</code><br>$$<br>I(\gamma) \equiv \int_0^1 |\dot{\gamma}(s)|ds \quad for a curve \gamma : [0,1] \rightarrow \mathbb{R}^3,<br>$$<br><code>areas</code> or <code>volumes</code>.</p>
+<h3 id="2-0-3-Cross-Product-Skew-symmetrc-Matrices"><a href="#2-0-3-Cross-Product-Skew-symmetrc-Matrices" class="headerlink" title="2.0.3 Cross Product $ Skew-symmetrc Matrices"></a>2.0.3 Cross Product $ Skew-symmetrc Matrices</h3><p>On $\mathbb{R}^3$ one can define a cross product<br>$$<br>\times : \mathbb{R}^3 \times \mathbb{R}^3 \rightarrow \mathbb{R}^3; \quad u\times v &#x3D; \left(<br>    \begin{matrix}<br>        u_2v_3-u_3v_2\\<br>        u_3v_1 - u_1v_3\\<br>        u_1v_2-u_2v_1<br>    \end{matrix}<br>    \right) \in \mathbb{R}^3,<br>$$<br>which is a vector <code>orthogonal to </code> $u$ and $v$. Since $u\times v&#x3D;-v\times u$, the cross product introduces an <code>orientation</code>. Fixing $u$ induces a linear mapping $v\mapsto u\times v$ which can be represented by the <code>skew-symmetric matrix</code><br>$$<br>\hat{u}&#x3D;\left(\\<br>    \begin{matrix}<br>        &amp;0 &amp;-u_3 &amp; u_2\\<br>        &amp;u_3 &amp;0 &amp;-u_1 \\<br>        &amp;-u_2 &amp;u_1 &amp;0<br>    \end{matrix}<br>    \right) \in \mathbb{R}^{3\times 3}.<br>$$</p>
+<p>In turn, every skew symmeric matrix $M&#x3D;-M^T\in \mathbb{R}^{3\times 3}$ can be identified with a vector $u\in \mathbb{R}^{3}$. The operator $\hat{ }$ defines  an <code>isomorphism</code> between $\mathbb{R}^3$ and the space <code>so(3)</code> of all $3\times 3$ skew-symmetric matrices. Its inverse is denoted by $\vee: so(3) \rightarrow \mathbb{R}^3$.</p>
+<h3 id="2-0-4-Rigid-Body-Motion"><a href="#2-0-4-Rigid-Body-Motion" class="headerlink" title="2.0.4 Rigid-Body Motion"></a>2.0.4 Rigid-Body Motion</h3><p>a <code>rigid-body motion</code> (or rigid-body transformation) is a familly of maps:<br>$$<br>g_t: \mathbb{R}^3 \rightarrow \mathbb{R}^3; \quad \bold{X}\mapsto g_t(\bold{X}), \quad t \in [0, T]<br>$$<br>which preserve the norm and cross product of any two vectors:</p>
+<ul>
+<li>$|g_t(v)|&#x3D;|v|, \forall v \in \mathbb{R}^3$,</li>
+<li>$g_t(u)\times g_t(v)&#x3D; g_t(u\times v), \forall u, v\in \mathbb{R}^3$.</li>
+</ul>
+<p>Since norm and scalar product are related by the <code>polarization identity</code><br>$$<br>&lt;u, v&gt; &#x3D; \frac{1}{4}(|u+v|^2-|u-v|^2),<br>$$<br>one can also state that a rigid-body motion is a map which preserves inner product and cross product. As a consequence, rigid-body motions also preserve the <code>triplet product</code><br>$$<br>&lt;g_t(u), g_t(v)\times g_t(w)&gt; &#x3D; &lt;u, v\times w&gt;, \forall u, v, w \in \mathbb{R}^3,<br>$$<br>which means that they are volume-preserving.</p>
+<h3 id="2-0-5-Exponetial-Coordinates-of-Rotation"><a href="#2-0-5-Exponetial-Coordinates-of-Rotation" class="headerlink" title="2.0.5 Exponetial Coordinates of Rotation"></a>2.0.5 Exponetial Coordinates of Rotation</h3><p>We will now devive a representation of an  <code>infinitesimal rotation</code>. To this end, consider a family of rotation matrices $R(t)$ which continuously transform a point from its original location $(R(0)&#x3D;I)$ to a different one.<br>$$<br>\bold{X}<em>{trans}(t) &#x3D; R(t)\bold{X}</em>{orig}, \quad with R(t)\in SO(3).<br>$$</p>
+<p>Since $R(t)R(t)^T&#x3D;I, \forall t, $ we have<br>$$<br>\frac{d}{dt}(RR^T)&#x3D;\dot{R}R^T + R\dot{R}^T&#x3D;0 \Rightarrow \dot{R}R^T&#x3D;-(\dot{R}R^T)^T.<br>$$</p>
+<p>Thus, $\dot{R}R^T$ is a <code>skew-symmetric matrix</code>. As shown in the section about the $\hat{}$ operator, this implies that there exists a vector $w(t)\in\mathbb{R}^3$ such that:<br>$$<br>\dot{R}(t)R^T(t)&#x3D;\hat{w}(t) \Leftrightarrow \dot{R}(t)&#x3D;\hat{w}R(t).<br>$$</p>
+<p>Since $R(0)&#x3D;I$, it follows that $\dot{R}(0)&#x3D;\hat{w}(0)$. Therefore the <code>skew-symmetric matrix</code> $\hat{w}(0)\in so(3)$ <code>gives the first order approximation of a rotation:</code><br>$$<br>R(dt)&#x3D;R(0) + dR &#x3D; I + \hat{w}(0)dt.<br>$$</p>
+<h3 id="2-0-6-Lie-Group-and-Lie-Algebra"><a href="#2-0-6-Lie-Group-and-Lie-Algebra" class="headerlink" title="2.0.6 Lie Group and Lie Algebra"></a>2.0.6 Lie Group and Lie Algebra</h3><p>The above calculations showned that the effect of any infinitesimal rotation $R\in SO(3)$ can be approximated by an element from the space of skew-symmetric matrices<br>$$<br>so(3)&#x3D;{\hat{w}| w \in \mathbb{R}^3}<br>$$</p>
+<p>The rotation group $SO(3)$ is called <code>Lie Group</code>. The space $so(3)$ is called its <code>Lie algebra</code>.</p>
+<p>Def.: A <code>Lie group</code> (or infinitesimal group) is a smooth manifold that is also a group, such that the group operations muliplication and inversion are smooth maps.</p>
+<p>As shown above: <code>The Lie algebra so(3) is the tangent space at the identity of the rotation group SO(3)</code>.</p>
+<p>An <code>algebra over a field</code> $K$ is a vector space $V$ over $K$ with multiplication on the space $V$. Elements $\hat{w}$ and $\hat{v}$ of the Lie algebra generally do not commute.</p>
+<p>One can define the <code>Lie bracket</code>:<br>$$<br>[\cdot, \cdot]: so(3)\times so(3)\rightarrow so(3); \quad [\hat{w}, \hat{v}]\equiv \hat{w}\hat{v}-\hat{v}\hat{w}.<br>$$</p>
+<h3 id="2-0-7-The-Exponential-Map-a-map-from-Lie-algebra-to-Lie-Group"><a href="#2-0-7-The-Exponential-Map-a-map-from-Lie-algebra-to-Lie-Group" class="headerlink" title="2.0.7 The Exponential Map (a map from Lie algebra to Lie Group)"></a>2.0.7 The Exponential Map (a map from Lie algebra to Lie Group)</h3><p>Given the infinitesimal formulation or rotation in terms of the skew-symmetric matrix $\hat{w}$, is it possible to determine a useful representation of the rotation $R(t)$? Let us assume that $\hat{w}$ is constant in time.</p>
+<p>The differential equation system</p>
+<p>$$<br>\begin{cases}<br>\dot{R}(t)&#x3D;\hat{w}R(t), \\\\<br>R(0)&#x3D;I.<br>\end{cases}<br>$$</p>
+<p>has the solution:</p>
+<p>$$<br>R(t)&#x3D;e^{\hat{w}t} &#x3D; \sum_{n&#x3D;0}^{\infty}\frac{ {(\hat{w}t)}^n}{n!} &#x3D; I + \hat{w}t + \frac{(\hat{w}t)^2}{2!} + …,<br>$$</p>
+<p>which is a rotation around the axis $w\in \mathbb{R}^3$ by an angle of $t$ if $||w||&#x3D;1$. Alternatively, one can absorb the scalar $t\in \R$ into the skew symmetric matrix $\hat{w}$ to obtain $R(t)&#x3D;e^{\hat{\vee}}$ with $\hat{\vee}&#x3D;\hat{w}t$.<br>This <code>matrix expomemtial</code> therefore defines a map from the Lie algebra to the Lie Group:</p>
+<p>$$<br>\exp: so(3)\rightarrow SO(3); \quad \hat{w}\mapsto e^{\hat{w}}.<br>$$ </p>
+<h3 id="2-0-8-The-Logarithm-of-SO-3"><a href="#2-0-8-The-Logarithm-of-SO-3" class="headerlink" title="2.0.8 The Logarithm of SO(3)"></a>2.0.8 The Logarithm of SO(3)</h3><p>As in the case of real analysis one can define an inverse function to the exponential map by the logarithm. In the context of Lie Groups, this will lead to a mapping from the Lie group to the Lie algebra. For any rotation matrix $R\in SO(3)$, there exists a $w\in \mathbb{R}^3$ such that $R&#x3D;\exp(\hat{w})$. Such an element is denoted by $\hat{w}&#x3D;log(R)$. </p>
+<p>If $R&#x3D;(r_{ij})\neq I$, then an appropriate $w$ is given by:<br>$$<br>|w|&#x3D;cos^{-1}(\frac{trace(R)-1}{2}), \frac{w}{|w|}&#x3D;\frac{1}{2sin(|w|)}\left(<br>    \begin{matrix}<br>        r_{32}-r_{23}\\<br>        r_{13}-r_{31}\\<br>        r_{21}-r_{12}<br>    \end{matrix}\right).<br>$$</p>
+<p>For $R&#x3D;I$, we have $|w|&#x3D;0$, i.e. a rotation by an angle 0. The above statement says: <code>Any orthogonal transformation </code> $R\in SO(3)$ <code>can be realized by rotating by an angle</code> $|w|$ <code>around an axis </code> $\frac{w}{|w|}$ <code>as defined above</code>. We will not prove this statement.</p>
+<p>Obviously the above representation is not unique since increasing the angle by multiples of $2\pi$ will give the same rotation $R$.</p>
+<h3 id="2-0-9-Rodrigues-Formula"><a href="#2-0-9-Rodrigues-Formula" class="headerlink" title="2.0.9 Rodrigues Formula"></a>2.0.9 Rodrigues Formula</h3><p>We have seen that any rotation can be realized by computing $R&#x3D;e^{\hat{w}}$. In analogy to the well-known Euler equation<br>$$<br>e^{i\phi} &#x3D; cos(\phi) + isin(\phi), \quad \forall \phi \in \mathbb{R},<br>$$<br>we have an expression for skew-symmetric matrices $\hat{w}\in so(3)$:<br>$$<br>e^{\hat{w}} &#x3D; I + \frac{\hat{w}}{w}sin(|w|) + \frac{\hat{w}^2}{|w|^2}(1-cos(|w|)).<br>$$</p>
+<p>This is known as <code>Rodrigues formula</code>.</p>
+<p>Proof: Let $t&#x3D;|w|$ and $v&#x3D;w&#x2F;|w|$. Then<br>$$<br>\hat{v}^2 &#x3D; vv^T-I, \quad \hat{v}^3 &#x3D; -\hat{v}, …<br>$$<br>and<br>$$<br>e^{\hat{w}}&#x3D;e^{\hat{v}t}&#x3D;I + (t-\frac{t^3}{3!} + \frac{t^5}{5!}-…)\hat{v} + (\frac{t^2}{2!} - \frac{t^4}{4!} + \frac{t^6}{6!}-…)\hat{v}^2.<br>$$</p>
+<h3 id="2-0-10-Representation-of-Rigid-body-Motions-SE-3"><a href="#2-0-10-Representation-of-Rigid-body-Motions-SE-3" class="headerlink" title="2.0.10 Representation of Rigid-body Motions SE(3)"></a>2.0.10 Representation of Rigid-body Motions SE(3)</h3><p>We have seen that motion of a rigid-body is uniquely determined by specifying the translation $T$ of any given point and a rotation matrix $R$<br>defining the transformation of an oriented Cartesian coordinate frame at the given point. Thus thw space of rigid-body motions given by the group<br>of special Euclidean transformations<br>$$<br>SE(3) \equiv {g&#x3D;(R, T) | R\in SO(3), T\in \mathbb{R}^3},<br>$$</p>
+<p>In homogeneous coordinates, we have:<br>$$<br>SE(3)\equiv {g&#x3D;\left(<br>    \begin{matrix}<br>        R &amp;T\\<br>        0 &amp;1<br>    \end{matrix}\right) |R\in SO(3), T\in \mathbb{R}^3} \subset \mathbb{R}^{4\times 4},<br>$$</p>
+<p>In the context of rigid motions, one can see the difference between points in $\mathbb{E}^3$ (which can be rotated and translated) and vectors in $\mathbb{R}^3$ (which can only be rotated).</p>
+<h3 id="2-0-11-The-Lie-Algebra-of-Twists"><a href="#2-0-11-The-Lie-Algebra-of-Twists" class="headerlink" title="2.0.11 The Lie Algebra of Twists"></a>2.0.11 The Lie Algebra of Twists</h3><p>Given a continuous family of rigid-body transformations<br>$$<br>g: \mathbb{R} \rightarrow SE(3); \quad g(t) &#x3D; \left(<br>    \begin{matrix}<br>        R(t) &amp;T(t)\\<br>        0 &amp;1<br>    \end{matrix}\right) \in \mathbb{R}^{4\times 4},<br>$$<br>we consider<br>$$<br>\dot{g}(t)g^{-1}(t)&#x3D; \left(<br>    \begin{matrix}<br>        \dot{R}R^T &amp;\dot{T}-\dot{R}R^TT \\<br>        0 &amp; 0<br>    \end{matrix}\right) \in \mathbb{R}^{4\times 4}.<br>$$</p>
+<p>As in the case of SO(3), the $\dot{R}R^T$ corresponds to some skew-symmetric matrix $\hat{w}\in so(3)$. Defining a vector $v(t)&#x3D;\dot{T}(t)-\hat{w}(t)T(t)$, we have:<br>$$<br>\dot{g}(t)g^{-1}(t) &#x3D;  \left(<br>    \begin{matrix}<br>        \hat{w}(t) &amp;v(t) \\<br>        0 &amp; 0<br>    \end{matrix}\right) \equiv \hat{\xi}(t) \in \mathbb{R}^{4\times 4}.<br>$$</p>
+<p>Multiplying with $g(t)$ from the right, we obtain:<br>$$<br>\dot{g}&#x3D;\dot{g}g^{-1}g &#x3D; \hat{\xi}g.<br>$$</p>
+<p>The $4\times 4$&#x3D;matrix $\hat{\xi}$ can be viewed as a tangent vector along the curve $g(t)$. $\hat{\xi}$ is called a <code>twist</code>. As in the case of $so(3)$, the set of all twists forms a the tangent space which is the <code>Lie Algebra</code><br>$$</p>
+<p>$$</p>
+<h3 id="2-0-12-The-Lie-Algebra-of-Twists"><a href="#2-0-12-The-Lie-Algebra-of-Twists" class="headerlink" title="2.0.12 The Lie Algebra of Twists"></a>2.0.12 The Lie Algebra of Twists</h3><p>Multiplying with $g(t)$ from the right, we obtain:<br>$$<br>\dot{g} &#x3D; \dot{g}g^{-1}g &#x3D; \hat{\xi}g.<br>$$</p>
+<p>The $4\times 4$-matrix $\hat{\xi}$ can be viewed as a tangented vector along the curve $g(t)$. $\hat{\xi}$ is called a <code>twist</code>. As in the case of $so(3)$, the set of all twists forms a the tangent space which is the <code>Lie algebra</code><br>$$<br>se(3) &#x3D; {<br>    \hat{\xi}&#x3D;<br>    \left(<br>        \begin{matrix}<br>            \hat{w} &amp;v \\<br>            0 &amp;0<br>        \end{matrix}   \right) | \hat{w}\in so(3), v\in \mathbb{R}^3} \subset \mathbb{R}^{4\times 4}.<br>$$<br>to the <code>Lie group SE(3)</code>.</p>
+<p>As before, we can define operators $\vee$ and $\wedge$ to convert between a twist $\hat{\xi} \in se(3)$ and its twist coordinates $\xi \in \mathbb{R}^6$:<br>$$<br>\hat{\xi} \equiv \left(<br>    \begin{matrix}<br>        v \\<br>        w<br>    \end{matrix}<br>    \right)^{\wedge} \equiv<br>    \left(<br>    \begin{matrix}<br>        \hat{w} &amp; v\\<br>        0 &amp;0<br>    \end{matrix}<br>    \right) \in \mathbb{R}^{4\times 4},<br>    \left(<br>    \begin{matrix}<br>        \hat{w} &amp;v\\<br>        0 &amp;0<br>    \end{matrix}<br>    \right)^{\vee} &#x3D;<br>    \left(<br>    \begin{matrix}<br>        v \\<br>        w<br>    \end{matrix}<br>    \right) \in \mathbb{R}^6,<br>$$</p>
+<h3 id="2-0-13-Exponential-Coordinates-for-SE-3"><a href="#2-0-13-Exponential-Coordinates-for-SE-3" class="headerlink" title="2.0.13 Exponential Coordinates for SE(3)"></a>2.0.13 Exponential Coordinates for SE(3)</h3><p>The twist coordinates $\xi &#x3D; \left(<br>    \begin{matrix}<br>    v \\<br>    w<br>\end{matrix}\right)$ are formed by stacking the <code>Linear velocity</code> $v\in \mathbb{R}^3$ (related to translation) and the <code>angular velocity</code> $w\in \mathbb{R}^3$ （related to rotation).<br>The differential equation system<br>$$<br>\begin{cases}<br>    \dot{g}(t) &#x3D; \hat{\xi}g(t), \quad \hat{\xi} &#x3D;const, \\<br>    g(0)&#x3D;I,<br>\end{cases}<br>$$<br>has the solution<br>$$<br>g(t) &#x3D; e^{\hat{\xi}t}&#x3D;\sum_{n&#x3D;0}^{\infty}\frac{(\hat{\xi}t)^n}{n!}.<br>$$</p>
+<p>For $w&#x3D;0$, we have $e^{\hat{\xi}}&#x3D;\left(<br>    \begin{matrix}<br>        I &amp;v\\<br>        0 &amp;1<br>    \end{matrix}<br>    \right),$ while for $w\neq0$ one can show:<br>$$<br>e^{\hat{\xi}}&#x3D;\left(<br>    \begin{matrix}<br>        e^{\hat{w}} &amp;\frac{(I-e^{\hat{w}})\hat{w}v + ww^Tv}{|w|} \\<br>        0 &amp;1<br>    \end{matrix}<br>    \right)<br>$$</p>
+<p>The above shows that the exponential map defines a transformation from the Lie algebra $se(3)$ too the Lie Group $SE(3)$:<br>$$<br>\exp :se(3)\rightarrow SE(3) ; \hat{\xi} \mapsto e^{\hat{\xi}}.<br>$$</p>
+<p>The elements $\hat{\xi} \in se(3)$ are called the <code>exponential coordinates</code> for $SE(3)$. </p>
+<p>Conversely: <code>For erery</code> $g\in SE(3)$, <code>there exist twist coordinates </code> $\xi &#x3D; (v, w)\in \mathbb{R}^6$ <code>such that</code> $g&#x3D;\exp(\hat{\xi})$.</p>
+<p>Proof: Given $g&#x3D;(R, T)$, we know that there exists $w\in \mathbb{R}^3$ with $e^{\hat{w}}&#x3D;R$. If $|w|\neq 0$, the exponential form of $g$ introduced above shows that we merely need to solve the equation<br>$$<br>\frac{(I-e^{\hat{w}})\hat{w}v + ww^Tv}{|w|}&#x3D;T<br>$$<br>for the velocity vector $v\in \mathbb{R}^3$. Just as in the case of $SO(3)$, this representation is generally not unique, i.e. there exist many twists $\hat{\xi}\in se(3)$ which represent the same rigid-body motion $g\in SE(3)$.</p>
+<h3 id="2-0-14-Representing-the-Motion-of-the-Camera"><a href="#2-0-14-Representing-the-Motion-of-the-Camera" class="headerlink" title="2.0.14 Representing the Motion of the Camera"></a>2.0.14 Representing the Motion of the Camera</h3><p>When observing a scene from a moving camera, the coordintes and velocity of points in camera coordinates will change. We will use a rigid-body transformation<br>$$<br>g(t) &#x3D; \left(<br>    \begin{matrix}<br>        R(t) &amp;T(t)\\<br>        0 &amp;1<br>    \end{matrix}\right) \in SE(3)<br>$$<br>to represent the motion from a fixed world frame to the camera frames at time $t$. In particular we assume that at time $t&#x3D;0$ the camera frames coincides with the world frame, i.e. $g(0)&#x3D;I$. For any point $\bold{X}_0$ in world coordinates, its coordinates in the camera frame at time $t$ are:<br>$$<br>\bold{X}(t) &#x3D; R(t)\bold{X}_0 +  T(t).<br>$$<br>or in the homogeneous representation(齐次表示—&gt;[x,y,z,1])<br>$$<br>\bold{X}(t) &#x3D; g(t)\bold{X}_0.<br>$$</p>
+<h3 id="2-0-15-Concatenation-of-Motions-over-Frames"><a href="#2-0-15-Concatenation-of-Motions-over-Frames" class="headerlink" title="2.0.15 Concatenation of Motions over Frames"></a>2.0.15 Concatenation of Motions over Frames</h3><p>Given two different times $t_1$ and $t_2$, we denote the transformation from the points in frame $t_1$ to the points in frame $t_2$ by $g(t_2, t_1)$:<br>$$<br>\bold{X}(t_2) &#x3D; g(t_2, t_1)\bold{X}(t_1).<br>$$</p>
+<p>Obviously we have:<br>$$<br>\bold{X}(t_3) &#x3D; g(t_3, t_2)\bold{X}_2&#x3D;g(t_3, t_2)g(t_2, t_1)\bold{X}(t_1)&#x3D;g(t_3, t_1)\bold{X}(t_1),<br>$$<br>and thus:<br>$$<br>g(t_3, t_1) &#x3D; g(t_3, t_2)g(t_2, t_1).<br>$$</p>
+<p>By transferring the coordinates of frame $t_1$ to coordinates in frame $t_2$ and back, we see that:<br>$$<br>\bold{X}(t_1) &#x3D; g(t_1, t_2)\bold{X}(t_2) &#x3D; g(t_1, t_2)g(t_2, t_1)\bold{X}(t_1),<br>$$<br>which must hold for any point coordinates $\bold{X}(t_1)$, thus:<br>$$<br>g(t_1, t_2)g(t_2, t_1)&#x3D;I \Leftrightarrow g^{-1}(t_2, t_1)&#x3D;g(t_1, t_2).<br>$$</p>
+<h3 id="2-0-16-Rules-of-Velocity-Transformation"><a href="#2-0-16-Rules-of-Velocity-Transformation" class="headerlink" title="2.0.16 Rules of Velocity Transformation"></a>2.0.16 Rules of Velocity Transformation</h3><p>The coordinates of point $\bold{X}_0$ in frame $t$ are given by $\bold{X}(t)&#x3D;g(t)\bold{X}_0$. Therefore the velocity is given by<br>$$<br>\dot{\bold{X}}(t) &#x3D; \dot{g}(t)\bold{X}_0 &#x3D; \dot{g}(t)g^{-1}(t)\bold{X}(t)<br>$$</p>
+<p>By introducing the <code>twist coordinates</code><br>$$<br>\hat{V}(t)\equiv \dot{g}(t)g^{-1}(t) &#x3D; \left(<br>    \begin{matrix}<br>        \hat{w}(t) &amp; v(t) \\<br>        0 &amp; 0<br>    \end{matrix}<br>    \right) \in so(3),<br>$$<br>we get the expression:<br>$$<br>\dot{\bold{X}(t)}&#x3D;\hat{V}(t)\bold{X}(t).<br>$$</p>
+<p>In simple 3D-coordinates this gives:<br>$$<br>\dot{\bold{X}}(t) &#x3D; \hat{w}(t)\bold{X}(t) + v(t0). (齐次形式)<br>$$</p>
+<p>The symbol $\hat{V(t)}$ therefore represents the relative velocity of the world frame as viewed from the camera frame.</p>
+<h3 id="2-0-17-Transfer-Between-Frames-The-Adjoint-Map-se-3-之间的映射"><a href="#2-0-17-Transfer-Between-Frames-The-Adjoint-Map-se-3-之间的映射" class="headerlink" title="2.0.17 Transfer Between Frames: The Adjoint Map (se(3)之间的映射)"></a>2.0.17 Transfer Between Frames: The Adjoint Map (se(3)之间的映射)</h3><p>Suppose that a viewer in another frame $A$ is displaced relative to the current frame by a transformation $g_{xy}$ :$\bold{Y} &#x3D; g_{xy}\bold{X}(t)$. Then the velocity in this view frame is given by:<br>$$<br>\dot{\bold{Y}}(t) &#x3D; g_{xy}\dot{\bold{X}}(t) &#x3D; g_{xy}\hat{V}(t)\bold{X}(t) &#x3D; g_{xy}\hat{V}g^{-1}_{xy}\bold{Y}(t).<br>$$</p>
+<p>This shows that the relative velocity of points observed from camera frame $A$ is represented by the twist:<br>$$<br>\hat{V}<em>y<br> &#x3D; g</em>{xy}\hat V g_{xy}^{-1} \equiv ad_{g_{xy}}(\hat<br> V).  (就是上式中直接把 \dot{Y}(t)根据定义写成Y(t)本身和在Y(t)处的李代数相乘) $$</p>
+<p>where we have introduced the <code>adjoint map on </code> $se(3)$:<br>$$<br>ad_g : se(3) \rightarrow se(3); \quad \hat{\xi} \mapsto g \hat{\xi}g^{-1}. ( \hat{\xi}就是 twist.)<br>$$</p>
+<h3 id="2-0-18-Summary"><a href="#2-0-18-Summary" class="headerlink" title="2.0.18 Summary"></a>2.0.18 Summary</h3><table>
+<thead>
+<tr>
+<th align="center"></th>
+<th align="center">Rotation $SO(3)$</th>
+<th align="center">Rigid-body $SE(3)$</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">Matrix representation</td>
+<td align="center">$R\in GL(3);$ <br> $R^TR&#x3D;I,$ <br> $det(R)&#x3D;1$</td>
+<td align="center">$g&#x3D;\left(\begin{matrix} R &amp;T\\ 0 &amp;1\end{matrix}\right)$</td>
+</tr>
+<tr>
+<td align="center">3-D coordinates</td>
+<td align="center">$\bold{X}&#x3D;R\bold{X}_0$</td>
+<td align="center">$\bold{X}&#x3D;R\bold{X}_0 + T$</td>
+</tr>
+<tr>
+<td align="center">Inverse</td>
+<td align="center">$R^{-1} &#x3D; R^T$</td>
+<td align="center">$g^{-1} &#x3D; \left(\begin{matrix} R^T &amp; -R^TT  \\ 0 &amp;1\end{matrix}\right)$</td>
+</tr>
+<tr>
+<td align="center">Exponential representation</td>
+<td align="center">$R&#x3D;\exp({\hat{w}})$</td>
+<td align="center">$g&#x3D;\exp({\hat{\xi}})$</td>
+</tr>
+<tr>
+<td align="center">Velocity</td>
+<td align="center">$\dot{\bold{X}}&#x3D;\hat{w}\bold{X}$</td>
+<td align="center">$\dot{\bold{X}}&#x3D;\hat{w}\bold{X} + v$</td>
+</tr>
+<tr>
+<td align="center">Adjoint map</td>
+<td align="center">$\hat{w}\mapsto R\hat{w}R^{T}$</td>
+<td align="center">$\hat{\xi} \mapsto g\hat{\xi}g^{-1}$</td>
+</tr>
+</tbody></table>
+<h3 id="2-0-19-Alternative-Representations-Euler-Angles"><a href="#2-0-19-Alternative-Representations-Euler-Angles" class="headerlink" title="2.0.19 Alternative Representations: Euler Angles"></a>2.0.19 Alternative Representations: Euler Angles</h3><p>In addition to the exponential parameterization, there exist alternative mathematical representations to parameterize rotation matrices $R\in SO(3)$,given by the <code>Euler angles</code>. These are <code>local</code> coordinates, i.e. the parameterization is only corret for a protion of $SO(3)$.</p>
+<p>Given a basis $(\hat{w}_1, \hat{w}_2, \hat{w}_3)$ of the Lie algebra $so(3)$, we can define a mapping from $\mathbb{R}^3$ to the Lie froup $SO(3)$ by:<br>$$<br>\alpha : (\alpha_1, \alpha_2, \alpha_3) \mapsto \exp (\alpha_1 \hat{w}_1 + \alpha_2 \hat{w}_2 + \alpha_3 \hat{w}_3).<br>$$</p>
+<p>The coordinates $(\alpha_1, \alpha_2, \alpha_3)$ are called <code>Lie-Cartan coordinates of the first kind</code> relative to the above basis.</p>
+<p>The <code>Lie-Cartan coordinates of the second kind</code> are defined as:<br>$$<br>\beta : (\beta_1, \beta_2, \beta_3) \mapsto \exp (\beta_1 \hat{w}_1)\exp( \beta_2 \hat{w}_2 )\exp(\beta_3 \hat{w}_3).<br>$$</p>
+<p>For the basis representing rotation around the $z-, y-,x-$axis<br>$$<br>w_1 &#x3D; (0,0,1)^T, w_2&#x3D;(0,1,0)^T, w_3&#x3D;(1,0,0)^T,$$<br>the coordinates $\beta_1, \beta_2, \beta_3$ are called <code>Euler Angles</code>.</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">KMnO4</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://wastoon.github.io/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%8C%EF%BC%89/">https://wastoon.github.io/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%8C%EF%BC%89/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://wastoon.github.io" target="_blank">KMnO4的行云小扎</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/">计算机视觉</a><a class="post-meta__tags" href="/tags/SFM/">SFM</a></div><div class="post_share"><div class="social-share" data-image="/img/MVG-2-cover.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button button--animated"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.png" target="_blank"><img class="post-qr-code-img" src="/img/wechat.png" alt="wechat"/></a><div class="post-qr-code-desc">wechat</div></li><li class="reward-item"><a href="/img/alipay.png" target="_blank"><img class="post-qr-code-img" src="/img/alipay.png" alt="alipay"/></a><div class="post-qr-code-desc">alipay</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%89%EF%BC%89/"><img class="prev-cover" src="/img/MVG-3-cover.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">多视图几何（三）</div></div></a></div><div class="next-post pull-right"><a href="/2022/02/21/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%80%EF%BC%89/"><img class="next-cover" src="/img/MVG-1-cover.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">MVG-多视图几何（一）</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%89%EF%BC%89/" title="多视图几何（三）"><img class="cover" src="/img/MVG-3-cover.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-23</div><div class="title">多视图几何（三）</div></div></a></div><div><a href="/2022/02/21/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%80%EF%BC%89/" title="MVG-多视图几何（一）"><img class="cover" src="/img/MVG-1-cover.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-21</div><div class="title">MVG-多视图几何（一）</div></div></a></div><div><a href="/2021/11/21/Vison-Transformer%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0%E8%A7%A3%E8%AF%BB%EF%BC%88%E4%B8%80%EF%BC%89/" title="Vison Transformer系列文章解读（一）"><img class="cover" src="/img/DETR.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2021-11-21</div><div class="title">Vison Transformer系列文章解读（一）</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">KMnO4</div><div class="author-info__description">西安交通大学硕士（CV，3D人体姿态估计，动作生成）</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Wastoon"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/Wastoon" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="/mengrongye@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">Everything is the meaning of life.<div class="twopeople"><div class="twopeople"><div class="container"style="height:200px;"><canvas class="illo"width="800"height="800"style="max-width: 200px; max-height: 200px; touch-action: none; width: 640px; height: 640px;"></canvas></div><script src="https://cdn.jsdelivr.net/gh/Justlovesmile/CDN/js/twopeople1.js"></script><script src="https://cdn.jsdelivr.net/gh/Justlovesmile/CDN/js/zdog.dist.js"></script><script id="rendered-js"src="https://cdn.jsdelivr.net/gh/Justlovesmile/CDN/js/twopeople.js"></script><style>.twopeople{margin:0;align-items:center;justify-content:center;text-align:center}canvas{display:block;margin:0 auto;cursor:move}</style></div></div></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Chapter-2-Representing-a-Moving-Scene"><span class="toc-number">1.</span> <span class="toc-text">Chapter 2 Representing a Moving Scene</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-0-Overview"><span class="toc-number">1.1.</span> <span class="toc-text">2.0 Overview</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-0-1-The-Origins-of-3D-Reconstruction"><span class="toc-number">1.1.1.</span> <span class="toc-text">2.0.1 The Origins of 3D Reconstruction</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-0-2-Three-Dimension-Euclidean-Space"><span class="toc-number">1.1.2.</span> <span class="toc-text">2.0.2 Three-Dimension Euclidean Space</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-0-3-Cross-Product-Skew-symmetrc-Matrices"><span class="toc-number">1.1.3.</span> <span class="toc-text">2.0.3 Cross Product $ Skew-symmetrc Matrices</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-0-4-Rigid-Body-Motion"><span class="toc-number">1.1.4.</span> <span class="toc-text">2.0.4 Rigid-Body Motion</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-0-5-Exponetial-Coordinates-of-Rotation"><span class="toc-number">1.1.5.</span> <span class="toc-text">2.0.5 Exponetial Coordinates of Rotation</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-0-6-Lie-Group-and-Lie-Algebra"><span class="toc-number">1.1.6.</span> <span class="toc-text">2.0.6 Lie Group and Lie Algebra</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-0-7-The-Exponential-Map-a-map-from-Lie-algebra-to-Lie-Group"><span class="toc-number">1.1.7.</span> <span class="toc-text">2.0.7 The Exponential Map (a map from Lie algebra to Lie Group)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-0-8-The-Logarithm-of-SO-3"><span class="toc-number">1.1.8.</span> <span class="toc-text">2.0.8 The Logarithm of SO(3)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-0-9-Rodrigues-Formula"><span class="toc-number">1.1.9.</span> <span class="toc-text">2.0.9 Rodrigues Formula</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-0-10-Representation-of-Rigid-body-Motions-SE-3"><span class="toc-number">1.1.10.</span> <span class="toc-text">2.0.10 Representation of Rigid-body Motions SE(3)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-0-11-The-Lie-Algebra-of-Twists"><span class="toc-number">1.1.11.</span> <span class="toc-text">2.0.11 The Lie Algebra of Twists</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-0-12-The-Lie-Algebra-of-Twists"><span class="toc-number">1.1.12.</span> <span class="toc-text">2.0.12 The Lie Algebra of Twists</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-0-13-Exponential-Coordinates-for-SE-3"><span class="toc-number">1.1.13.</span> <span class="toc-text">2.0.13 Exponential Coordinates for SE(3)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-0-14-Representing-the-Motion-of-the-Camera"><span class="toc-number">1.1.14.</span> <span class="toc-text">2.0.14 Representing the Motion of the Camera</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-0-15-Concatenation-of-Motions-over-Frames"><span class="toc-number">1.1.15.</span> <span class="toc-text">2.0.15 Concatenation of Motions over Frames</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-0-16-Rules-of-Velocity-Transformation"><span class="toc-number">1.1.16.</span> <span class="toc-text">2.0.16 Rules of Velocity Transformation</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-0-17-Transfer-Between-Frames-The-Adjoint-Map-se-3-%E4%B9%8B%E9%97%B4%E7%9A%84%E6%98%A0%E5%B0%84"><span class="toc-number">1.1.17.</span> <span class="toc-text">2.0.17 Transfer Between Frames: The Adjoint Map (se(3)之间的映射)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-0-18-Summary"><span class="toc-number">1.1.18.</span> <span class="toc-text">2.0.18 Summary</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-0-19-Alternative-Representations-Euler-Angles"><span class="toc-number">1.1.19.</span> <span class="toc-text">2.0.19 Alternative Representations: Euler Angles</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-weibo"><div class="card-content"><div class="item-headline"><i class="fab fa-weibo"></i><span>微博热搜</span></div><div id="weibo-container" style="width: 100%; height: 150px;font-size: 95%;"></div></div></div><script defer="defer" data-pjax="data-pjax" src="/js/card_weibo.js"></script><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%89%EF%BC%89/" title="多视图几何（三）"><img src="/img/MVG-3-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="多视图几何（三）"/></a><div class="content"><a class="title" href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%89%EF%BC%89/" title="多视图几何（三）">多视图几何（三）</a><time datetime="2022-02-23T11:44:57.000Z" title="发表于 2022-02-23 19:44:57">2022-02-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%8C%EF%BC%89/" title="多视图几何（二）"><img src="/img/MVG-2-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="多视图几何（二）"/></a><div class="content"><a class="title" href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%8C%EF%BC%89/" title="多视图几何（二）">多视图几何（二）</a><time datetime="2022-02-23T10:59:40.000Z" title="发表于 2022-02-23 18:59:40">2022-02-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/02/21/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%80%EF%BC%89/" title="MVG-多视图几何（一）"><img src="/img/MVG-1-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MVG-多视图几何（一）"/></a><div class="content"><a class="title" href="/2022/02/21/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%80%EF%BC%89/" title="MVG-多视图几何（一）">MVG-多视图几何（一）</a><time datetime="2022-02-21T10:48:34.000Z" title="发表于 2022-02-21 18:48:34">2022-02-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2021/11/21/Transformer%E7%9A%84%E5%89%8D%E4%B8%96%E4%BB%8A%E7%94%9F/" title="Transformer的前世今生"><img src="/img/transformer.jpeg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Transformer的前世今生"/></a><div class="content"><a class="title" href="/2021/11/21/Transformer%E7%9A%84%E5%89%8D%E4%B8%96%E4%BB%8A%E7%94%9F/" title="Transformer的前世今生">Transformer的前世今生</a><time datetime="2021-11-21T07:16:49.000Z" title="发表于 2021-11-21 15:16:49">2021-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2021/11/21/Vison-Transformer%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0%E8%A7%A3%E8%AF%BB%EF%BC%88%E4%B8%80%EF%BC%89/" title="Vison Transformer系列文章解读（一）"><img src="/img/DETR.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Vison Transformer系列文章解读（一）"/></a><div class="content"><a class="title" href="/2021/11/21/Vison-Transformer%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0%E8%A7%A3%E8%AF%BB%EF%BC%88%E4%B8%80%EF%BC%89/" title="Vison Transformer系列文章解读（一）">Vison Transformer系列文章解读（一）</a><time datetime="2021-11-21T07:05:22.000Z" title="发表于 2021-11-21 15:05:22">2021-11-21</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/MVG-2-cover.png')"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By KMnO4</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font-plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font-minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"><script>if (!window.MathJax) {
+  window.MathJax = {
+    tex: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"]],
+      tags: 'ams'
+    },
+    chtml: {
+      scale: 1.2
+    },
+    options: {
+      renderActions: {
+        findScript: [10, doc => {
+          for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+            const display = !!node.type.match(/; *mode=display/)
+            const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+            const text = document.createTextNode('')
+            node.parentNode.replaceChild(text, node)
+            math.start = {node: text, delim: '', n: 0}
+            math.end = {node: text, delim: '', n: 0}
+            doc.math.push(math)
+          }
+        }, ''],
+        insertScript: [200, () => {
+          document.querySelectorAll('mjx-container:not\([display]\)').forEach(node => {
+            const target = node.parentNode
+            if (target.nodeName.toLowerCase() === 'li') {
+              target.parentNode.classList.add('has-jax')
+            } else {
+              target.classList.add('has-jax')
+            }
+          });
+        }, '', false]
+      }
+    }
+  }
+  
+  const script = document.createElement('script')
+  script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js'
+  script.id = 'MathJax-script'
+  script.async = true
+  document.head.appendChild(script)
+} else {
+  MathJax.startup.document.state(0)
+  MathJax.texReset()
+  MathJax.typeset()
+}</script><script>function addGitalkSource () {
+  const ele = document.createElement('link')
+  ele.rel = 'stylesheet'
+  ele.href= 'https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css'
+  document.getElementsByTagName('head')[0].appendChild(ele)
+}
+
+function loadGitalk () {
+  function initGitalk () {
+    var gitalk = new Gitalk(Object.assign({
+      clientID: '60cf579829afb2b2cdf9',
+      clientSecret: '991dfac32f5e2bd0470bd4b8f5b8a2ef54e9b164',
+      repo: 'Wastoon.github.io',
+      owner: 'Wastoon',
+      admin: ['Wastoon'],
+      id: '6493e87b502af0fc78d7e8a3c779727e',
+      language: 'zh-CN',
+      perPage: 10,
+      distractionFreeMode: false,
+      pagerDirection: 'last',
+      createIssueManually: true,
+      updateCountCallback: commentCount
+    },false))
+
+    gitalk.render('gitalk-container')
+  }
+
+  if (typeof Gitalk === 'function') initGitalk()
+  else {
+    addGitalkSource()
+    getScript('https://cdn.jsdelivr.net/npm/gitalk@latest/dist/gitalk.min.js').then(initGitalk)
+  }
+}
+
+function commentCount(n){
+  let isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+  if (isCommentCount) {
+    isCommentCount.innerHTML= n
+  }
+}
+
+if ('Gitalk' === 'Gitalk' || !true) {
+  if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+  else loadGitalk()
+} else {
+  function loadOtherComment () {
+    loadGitalk()
+  }
+}</script></div><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="true"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-show-text.min.js" data-mobile="false" data-text="I,Miss,You" data-fontsize="15px" data-random="false" async="async"></script><script>((window.gitter = {}).chat = {}).options = {
+  disableDefaultChat: true,
+};
+document.addEventListener('gitter-sidecar-ready', (e) => {
+  const GitterChat = e.detail.Chat
+  let chat
+
+  function initGitter () {
+    chat = new GitterChat({
+      room: 'OMGsitetalk/community',
+      activationElement: '#chat_btn'
+    });
+  }
+
+  initGitter()
+
+  if (false) {
+    document.addEventListener('pjax:complete', () => {
+      chat.destroy()
+      initGitter()
+    })
+  }
+
+})</script><script src="https://sidecar.gitter.im/dist/sidecar.v1.js" async="async" defer="defer"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_clock_injector_config(){
+    var parent_div_git = document.getElementsByClassName('sticky_layout')[0];
+    var item_html = '<div class="card-widget card-clock"><div class="card-glass"><div class="card-background"><div class="card-content"><div id="hexo_electric_clock"><img class="entered loading" id="card-clock-loading" src="https://cdn.jsdelivr.net/gh/tzy13755126023/BLOG_SOURCE/theme_f/loading.gif" style="height: 120px; width: 100%;" data-ll-status="loading"/></div></div></div></div></div>';
+    console.log('已挂载butterfly_clock')
+    parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+    }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var flag = 0;
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_clock_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_clock_injector_config();
+  }
+  </script><script src="https://pv.sohu.com/cityjson?ie=utf-8"></script><script data-pjax src="https://cdn.jsdelivr.net/npm/hexo-butterfly-clock/lib/clock.min.js"></script><script async src="//at.alicdn.com/t/font_2032782_8d5kxvn09md.js"></script><script data-pjax src="https://cdn.jsdelivr.net/npm/hexo-filter-gitcalendar/lib/gitcalendar.js"></script><script data-pjax>
+                        function gitcalendar_injector_config(){
+                          var parent_div_git = document.getElementById('recent-posts');
+                          var item_html = '<div class="recent-post-item" style="width:100%;height:auto;padding:10px;"><style>#git_container{min-height: 280px}@media screen and (max-width:650px) {#git_container{min-height: 0px}}</style><div id="git_loading" style="width:10%;height:100%;margin:0 auto;display: block;"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 50 50" style="enable-background:new 0 0 50 50" xml:space="preserve"><path fill="#d0d0d0" d="M25.251,6.461c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615V6.461z" transform="rotate(275.098 25 25)"><animatetransform attributeType="xml" attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="0.6s" repeatCount="indefinite"></animatetransform></path></svg><style>#git_container{display: none;}</style></div><div id="git_container"></div></div>';
+                          parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+                          console.log('已挂载gitcalendar')
+                          }
+
+                        if( document.getElementById('recent-posts') && (location.pathname ==='/'|| '/' ==='all')){
+                            gitcalendar_injector_config()
+                            GitCalendarInit("https://gitcalendar.akilar.top/api?Wastoon",['#ebedf0', '#fdcdec', '#fc9bd9', '#fa6ac5', '#f838b2', '#f5089f', '#c4067e', '#92055e', '#540336', '#48022f', '#30021f'],'Wastoon')
+                        }
+                      </script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>

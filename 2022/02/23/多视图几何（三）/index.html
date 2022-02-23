@@ -1,0 +1,365 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>多视图几何（三） | KMnO4的行云小扎</title><meta name="keywords" content="计算机视觉,SFM"><meta name="author" content="KMnO4"><meta name="copyright" content="KMnO4"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Chapter 3 Perspective Projection3.1 Mathematics of Perspective Projection The perspective transformation $\pi$ from a point with coordinates $\bold{X}&#x3D;(X,Y,Z)\in \mathbb{R}^3$ relative to the ref">
+<meta property="og:type" content="article">
+<meta property="og:title" content="多视图几何（三）">
+<meta property="og:url" content="https://wastoon.github.io/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%89%EF%BC%89/index.html">
+<meta property="og:site_name" content="KMnO4的行云小扎">
+<meta property="og:description" content="Chapter 3 Perspective Projection3.1 Mathematics of Perspective Projection The perspective transformation $\pi$ from a point with coordinates $\bold{X}&#x3D;(X,Y,Z)\in \mathbb{R}^3$ relative to the ref">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://wastoon.github.io/img/MVG-3-cover.png">
+<meta property="article:published_time" content="2022-02-23T11:44:57.000Z">
+<meta property="article:modified_time" content="2022-02-23T11:55:53.011Z">
+<meta property="article:author" content="KMnO4">
+<meta property="article:tag" content="计算机视觉">
+<meta property="article:tag" content="SFM">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://wastoon.github.io/img/MVG-3-cover.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://wastoon.github.io/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%89%EF%BC%89/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><meta/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '多视图几何（三）',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-02-23 19:55:53'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const fontSizeVal = saveToLocal.get('global-font-size')
+    if (fontSizeVal !== undefined) {
+      document.documentElement.style.setProperty('--global-font-size', fontSizeVal + 'px')
+    }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-butterfly-clock/lib/clock.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/l-lin/font-awesome-animation/dist/font-awesome-animation.min.css" media="defer" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-butterfly-tag-plugins-plus@latest/lib/tag_plugins.min.css" media="defer" onload="this.media='all'"><script async src="https://cdn.jsdelivr.net/npm/hexo-butterfly-tag-plugins-plus@latest/lib/carousel-touch.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-filter-gitcalendar/lib/gitcalendar.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/icon.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 网站统计</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 自留地</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 吉他谱</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> Movie</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 嗑盐&amp;摸鱼</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 文献</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 经典开源项目</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 个人项目</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/MVG-3-cover.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">KMnO4的行云小扎</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 网站统计</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 自留地</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 吉他谱</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> Movie</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 嗑盐&amp;摸鱼</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 文献</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 经典开源项目</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 个人项目</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">多视图几何（三）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-02-23T11:44:57.000Z" title="发表于 2022-02-23 19:44:57">2022-02-23</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-02-23T11:55:53.011Z" title="更新于 2022-02-23 19:55:53">2022-02-23</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/">计算机视觉</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/SFM/">SFM</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">2.2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>13分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="多视图几何（三）"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="Chapter-3-Perspective-Projection"><a href="#Chapter-3-Perspective-Projection" class="headerlink" title="Chapter 3 Perspective Projection"></a>Chapter 3 Perspective Projection</h1><h2 id="3-1-Mathematics-of-Perspective-Projection"><a href="#3-1-Mathematics-of-Perspective-Projection" class="headerlink" title="3.1 Mathematics of Perspective Projection"></a>3.1 Mathematics of Perspective Projection</h2><p><img src="https://cdn.jsdelivr.net/gh/Wastoon/myPicGo/img/946429bf8edc558203e31c5e05ee8318.png"></p>
+<p>The perspective transformation $\pi$ from a point with coordinates $\bold{X}&#x3D;(X,Y,Z)\in \mathbb{R}^3$ relative to the reference frame centered at the optical center and with z-axis being the optical axis (of the lens) is obtained by comparing similar triangles $\bold{A}$ and $\bold{B}$:<br>$$<br>\frac{Y}{Z} &#x3D; -\frac{y}{f} \Leftrightarrow y &#x3D; -f\frac{Y}{Z}.<br>$$</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Wastoon/myPicGo/img/0ae78f3f4b6d8d778addc3250a2fdded.png"><br>To simplify equations, one flips the signs of x- and y-axes, which amounts to considering the image plane to be in front of the center of projection (rather than behind it). The perspective transformation $\pi$ is therefore given by:<br>$$<br>\pi : \mathbb{R}^3 \rightarrow \mathbb{R}^2; \quad \bold{X}\mapsto x&#x3D;\pi(\bold{X})&#x3D;\left(\begin{matrix} f\frac{X}{Z} \\ f\frac{Y}{Z}\end{matrix}\right).<br>$$</p>
+<h2 id="3-2-An-Ideal-Perspective-Projection"><a href="#3-2-An-Ideal-Perspective-Projection" class="headerlink" title="3.2 An Ideal Perspective Projection"></a>3.2 An Ideal Perspective Projection</h2><p><code>In homogeneous coordinates</code>, the perspective transformation is given by:<br>$$<br>Z\bold{x} &#x3D; Z\left(\begin{matrix}<br>    x\\y\\1<br>\end{matrix}\right)&#x3D;<br>\left(\begin{matrix}<br>    f &amp; 0&amp;0 &amp;0\\<br>    0 &amp;f &amp;0 &amp;0\\<br>    0 &amp;0&amp;1&amp; 0<br>\end{matrix}\right)\left(\begin{matrix}<br>    X\\Y\\ Z \\1<br>\end{matrix}\right) &#x3D; K_f\Pi_0 \bold{X},<br>$$<br>where we have introduced the two matrices:<br>$$<br>K_f \equiv \left(\begin{matrix}<br>    f &amp; 0&amp; 0\\<br>    0 &amp; f &amp;0 \\<br>    0 &amp; 0 &amp; 1<br>\end{matrix}\right) and\quad \Pi_0 \equiv<br>\left(\begin{matrix}<br>    1 &amp;0 &amp;0 &amp;0 \\<br>    0 &amp;1 &amp;0 &amp; 0 \\<br>    0 &amp;0 &amp;1 &amp;0<br>\end{matrix}\right).<br>$$</p>
+<p>The matrix $\Pi_0$ is referred to as the <code>standard projection matrix</code>. Assuming $Z$ to be a constant $\lambda &gt;0$, we obtain:<br>$$<br>\lambda x &#x3D; K_f\Pi_0 \bold{X}.<br>$$</p>
+<p>From the previous lectures, we know that due to the <code>rigid motion of the camera</code>, the point $\bold{X}$ <code>in camera coordinates</code> is given as function of the point in <code>world co ordinates</code> $\bold{X}_0$ by:<br>$$<br>\bold{X} &#x3D; R\bold{X}_0 + T,<br>$$<br>or in homogeneous coordinates $\bold{X}&#x3D;(X, Y, Z, 1)^T$:<br>$$<br>\bold{X} &#x3D; g\bold{X}_0 &#x3D; \left(\begin{matrix}<br>    R &amp;T\\<br>    0 &amp;1<br>\end{matrix}\right)\bold{X}_0.<br>$$</p>
+<p>In total, the transformaiton from world coordinates to image coordinates is therefore given by:<br>$$<br>\lambda \bold{x}&#x3D;K_f\Pi _0 g\bold{X}_0.<br>$$</p>
+<p>If the focal length $f$ is known, it can be normlized to 1 (by changing the units of the image cooedinates),such that:<br>$$<br>\lambda \bold{x} &#x3D; \Pi_0 \bold{X} &#x3D; \Pi_0 g \bold{X}_0.<br>$$</p>
+<h2 id="3-3-Intrinsic-Camera-Parameters"><a href="#3-3-Intrinsic-Camera-Parameters" class="headerlink" title="3.3 Intrinsic Camera Parameters"></a>3.3 Intrinsic Camera Parameters</h2><h2 id="从世界坐标系—-gt-camera坐标系—-gt-image坐标系—-gt-pixel坐标系"><a href="#从世界坐标系—-gt-camera坐标系—-gt-image坐标系—-gt-pixel坐标系" class="headerlink" title="(从世界坐标系—&gt;camera坐标系—&gt;image坐标系—&gt;pixel坐标系)"></a>(从世界坐标系—&gt;camera坐标系—&gt;image坐标系—&gt;pixel坐标系)</h2><p>If the camera is not centered at the optical center, we have an additional translation $o_x, o_y$ and if pixel coordinates do not have unit scale, we need to introduce an additional scaling in x- and y-direction by $s_x$ and $s_y$. If the pixels are not rectangular, we have a <code>skew factor</code> $s_\theta$.<br>The pixel coordinates $(x’, y’, 1)$ as a function of homogeneous camera coordinates $\bold{X}$ are then given by:<br>$$<br>\lambda \left(\begin{matrix}<br>    x’\\y’\\1<br>\end{matrix}\right)&#x3D;\underbrace{\left(\begin{matrix}<br>    s_x &amp;s_y &amp;o_x\\<br>    0 &amp;s_y  &amp;o_y \\<br>    0 &amp; 0&amp; 1<br>\end{matrix}\right)}<em>{\equiv K_s}<br>\underbrace{\left(\begin{matrix}<br>    f &amp;0&amp;0\\<br>    0 &amp;f&amp;0\\<br>    0 &amp; 0&amp; 1<br>\end{matrix}\right)}</em>{\equiv K_f}<br>\underbrace{\left(\begin{matrix}<br>    1&amp;0&amp;0&amp;0\\<br>    0&amp;1&amp;0&amp;0\\<br>    0&amp;0&amp;1&amp;0<br>\end{matrix}\right)}_{\equiv \Pi_0}<br>\left(\begin{matrix}<br>    X\\Y\\Z\\1<br>\end{matrix}\right)<br>$$</p>
+<p>After the perspective projection $\Pi_0$ (with focal length 1), we have an additional transformation which depends on the (intrinsic) camera parameters. This can be expressed by the <code>intrisic parameter matrix</code> $K&#x3D;K_sK_f$.</p>
+<h2 id="3-4-The-Intrinsic-Parameter-Matrix"><a href="#3-4-The-Intrinsic-Parameter-Matrix" class="headerlink" title="3.4 The Intrinsic Parameter Matrix"></a>3.4 The Intrinsic Parameter Matrix</h2><p>All intrinsic camera parameter therefore enetr the <code>intrinsic parameter matrix</code>:<br>$$<br>K \equiv K_sK_f &#x3D; \left(\begin{matrix}<br>    fs_x&amp;fs_\theta&amp;o_x\\<br>    0&amp;fs_y&amp;o_y\\<br>    0&amp;0&amp;1<br>\end{matrix}\right).<br>$$</p>
+<p>As a function of the world coordinates $\bold{X}_0$, we therefore have:<br>$$<br>\lambda \bold{x}’ &#x3D; K\Pi_0 \bold{X} &#x3D; K\Pi_0 g\bold{X}_0 \equiv \Pi \bold{X}_0.<br>$$</p>
+<p>The $3\times 4$ matrix $\Pi\equiv K\Pi_0 g&#x3D;(KR, KT)$ is called a <code>general projection matrix</code>.</p>
+<p>Although the above equation looks like a linear one, we still have the scale parameter $\lambda$. Dividing by $\lambda$ gives:<br>$$<br>x’ &#x3D; \frac{\pi_1^T\bold{X}_0}{\pi_3^T\bold{X}_0}, \quad y’&#x3D;\frac{\pi_2^T\bold{X}_0}{\pi_3^T\bold{X}_0}, \quad z’&#x3D;1,<br>$$<br>where $\pi_1^T,\pi_2^T,\pi_3^T \in \mathbb{R}^4$ are the three rows of the projection matrix $\Pi$.<br>The entries of the intrinsic parameter matrix:<br>$$<br>\left(\begin{matrix}<br>    fs_x&amp;fs_\theta&amp;o_x\\<br>    0&amp;fs_y&amp;o_y\\<br>    0&amp;0&amp;1<br>\end{matrix}\right),<br>$$<br>can be interpreted as follows:<br>$o_x:$ x-coordinate of principal point in pixels,<br>$o_y$: y-coordinate of principal point in pixels,<br>$fs_x&#x3D;\alpha_x$:size of unit length in horizontal pixels,<br>$fs_y&#x3D;\alpha_y$:size of unit length in vertical pixels,<br>$\alpha_x &#x2F; \alpha_y$: aspect ratio $\sigma$,<br>$fs_\theta$: skew of pixel, often close to zero.</p>
+<h2 id="3-5-Spherical-Perspective-Projection"><a href="#3-5-Spherical-Perspective-Projection" class="headerlink" title="3.5 Spherical Perspective Projection"></a>3.5 Spherical Perspective Projection</h2><p>The perspective pinhole camera introduced above considers a planar imaging surface. Instead, one can consider a spherical projection surface given by the unit sphere $\mathbb{S}^2\equiv {\bold{x}\in \mathbb{R}^3 | |\bold{x}|&#x3D;1}$. The <code>spherical projection</code> $\pi_s$ of a 3D point $\bold{X}$ is given by:<br>$$<br>\pi_s :\mathbb{R}^3 \rightarrow \mathbb{S}; \quad \bold{X} \mapsto \bold{x}&#x3D;\frac{\bold{X}}{\bold{|X|}}.<br>$$</p>
+<p>The pixel coordinates $\bold{x}’$ as a function of the world coordinates $\bold{X}_0$ are:<br>$$<br>\lambda \bold{x}’ &#x3D; K\Pi_0 g\bold{X}_0,<br>$$<br>except that the scalar factor is now $\lambda&#x3D;|\bold{X}|&#x3D;\sqrt{X^2+Y^2+Z^2}$. One often writes $\bold{x}<del>\bold{y}$ for homogeneous vectors $\bold{x}$ and $\bold{y}$ if they are equal up to a scalar factor. Then we can write:<br>$$<br>\bold{x}’</del>\Pi \bold{X}_0 &#x3D; K\Pi_0 g\bold{X}_0.<br>$$</p>
+<p>This property holds for any imaging surface, as long as the ray between $\bold{X}$ and the origin intersects the imaging surface.</p>
+<h2 id="3-6-Radial-Distortion"><a href="#3-6-Radial-Distortion" class="headerlink" title="3.6 Radial Distortion"></a>3.6 Radial Distortion</h2><p>The intrinsic parameters in the matrix $K$ model linear distortions in the transformations to pixel coordinates. In practice, however, one can also encounter significant <code>distortions along the radial axis</code>, in particular if a wide field of view is used or if one uses cheaper cameras such as webcams. A simple effective model for such distortions is:<br>$$<br>x &#x3D; x_d (1+a_1r^2 + a_2r^4), \quad y &#x3D; y_d(1+a_1r^2+a_2r^4),<br>$$<br>where $\bold{x}_d\equiv (x_d, y_d)$ is the diatorted point, $r^2&#x3D;x_d^2+y_d^2$. If a calibration rig is available, the distortion parameter $a_1$ and $a_2$ can be estimated.</p>
+<p>Alternatively, one can estimate a distortion model directly from the images. A more general model is :<br>$$<br>\bold{x}&#x3D;c+f(r)(\bold{x}_d - c), \ with \ f(r)&#x3D;1+ a_1r + a_2r^2 + a_3r^3 + a_4r^4,<br>$$</p>
+<p>Here, $r &#x3D; |\bold{x} -c|$ is the distance to an arbitrary center of distortion $c$ and the <code>distortion correction factor </code> $f(r)$ is an arbitrary 4-th order expression. Parameter are computed <code>from disrtotions of straight lines</code> or <code>simultaneously with the 3D reconstruction</code>.</p>
+<h2 id="3-7-Preimage-of-Points-and-Lines"><a href="#3-7-Preimage-of-Points-and-Lines" class="headerlink" title="3.7 Preimage of Points and Lines"></a>3.7 Preimage of Points and Lines</h2><p>The perspective transformation introduced above allows to define images for arbitrary geometric entities by simply transformaing all points of the entity. However, due to the unknown scale factor, each point is mapped not to a single point $\bold{x}$, but to an <code>qquivalence class of points </code> $\bold{y}<del>\bold{x}$. It is therefore useful to <code>study how lines are transformed</code>. A line $L$ in 3-D is characterized by a base point $\bold{X}_0&#x3D; (X_0, Y_0, Z_0, 1)^T \in \mathbb{R}^4$ and a vector $\bold{V}&#x3D;(V_1, V_2, V_3, 0)^T\in \mathbb{R}^4$:<br>$$<br>\bold{X}&#x3D;\bold{X}_0 + \mu\bold{V}, \quad \mu\in\R.<br>$$<br>The image of the line $L$ is given by:<br>$$<br>\bold{x}</del>\Pi_0 \bold{X} &#x3D; \Pi_0 (\bold{X}_0 + \mu \bold{V}) &#x3D; \Pi_0 \bold{X}_0 + \mu \Pi_0 \bold{V}.<br>$$</p>
+<p>All points $\bold{x}$ treated as vectors from the origin $o$ span a 2-D subspace $P$. The intersection of this plane $P$ with the image plane gives the image of the line. $P$ is called the preimage of the line.</p>
+<p>A <code>preimage of a point or a line</code> in the image plane is the largest set of 3D points that give rise to an image equal to the given point or line.</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Wastoon/myPicGo/img/20210715102405529.png"></p>
+<p>Preimages can be defined for curves or other more complicated geometric structures. In the case of points and lines, however, the preimage is  a subspace of $\mathbb{R}^3$. This subspace can also be represented by its orthogonal complement, i.e. the normal vector in the case of a plane. This complement is called the coimage. The <code>coimage of a point or a line</code> is the subspace in $\mathbb{R}^3$ that is the (unique) orthogonal complement of its preimage. Image, preimage and coimage are <code>equivalent</code> because they uniquely determine one another:<br>$$<br>image &#x3D; preimage \cap image plane, \quad preimage &#x3D; span(image), \\<br>preimage &#x3D; coimage^{\perp}, \quad coimage &#x3D; preimage^{\perp}.<br>$$</p>
+<h2 id="3-8-Preimage-and-Colimage-of-Points-and-Lines"><a href="#3-8-Preimage-and-Colimage-of-Points-and-Lines" class="headerlink" title="3.8 Preimage and Colimage of Points and Lines"></a>3.8 Preimage and Colimage of Points and Lines</h2><p>In the case of the line $L$, the preimage is a 2D subspace, characterized by the 1D colimage given by the span of its normal vector $\ell \in \mathbb{R}^3$. All points of the preimage, and hence all points $\bold{x}$ of the image of $L$ are orthogonal to $\ell$:<br>$$<br>\ell^T\bold{x} &#x3D; 0.<br>$$</p>
+<p>The space of all vectors orthogonal to $\ell$ is spanned by the row vectors of $\hat{\ell}$, thus we have:<br>$$<br>P &#x3D; span(\hat{\ell}).<br>$$</p>
+<p>In the case that $\bold{x}$ is the image of a point $p$, the preimage is a line and the colimage is the plane orthogonal to $\bold{x}$, i.e. it is spanned by the rows of the matrix $\hat{x}$. </p>
+<p>In summary we have the following table:</p>
+<table>
+<thead>
+<tr>
+<th align="center"></th>
+<th align="center">Image</th>
+<th align="center">Preimage</th>
+<th align="center">Colimage</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">Point</td>
+<td align="center">span($\bold{x}$)$\cap$ im.plane</td>
+<td align="center">span($\bold{x}$)$\subset\mathbb{R}^3$</td>
+<td align="center">span($\bold{x}$)$\subset\mathbb{R}^3$</td>
+</tr>
+<tr>
+<td align="center">Line</td>
+<td align="center">span($\hat{\ell}$)$\cap$ im.plane</td>
+<td align="center">span($\hat{\ell}$)$\subset\mathbb{R}^3$</td>
+<td align="center">span($\hat{\ell}$)$\subset\mathbb{R}^3$</td>
+</tr>
+</tbody></table>
+<h2 id="3-9-Summary"><a href="#3-9-Summary" class="headerlink" title="3.9 Summary"></a>3.9 Summary</h2><p>In this part of the lecture, we studied the <code>perspective projection</code> which takes us from the 3D (4D) camera coordinates to 2D camera image coordinates and pixel coordinates. In homogeneous coordinates, we have the transformations:<br>$$<br>4D\ Wolrd\ coordinates \stackrel{g\in SE(3)}\longrightarrow 4D \ {Camera \ coordinates} \stackrel{K_f\Pi_0}{\longrightarrow} 3D \ {image \ coordinates}\stackrel{K_s}{\longrightarrow} 3D \ {pixel \ coordinates} (齐次坐标形式).<br>$$</p>
+<p>In particular, we can summarize the <code>(intrinsic) camera parameters</code> in the matrix:<br>$$<br>K &#x3D; K_sK_f.<br>$$</p>
+<p>The full transformation from world coordinates $\bold{X}_0$ to pixel coordinates $\bold{x}’$ is given by :<br>$$<br>\lambda \bold{x}’ &#x3D; K\Pi_0 g\bold{X}_0.<br>$$</p>
+<p>Moreover, for the images of points and lines we introduced the notions of <code>preimage</code> (maximal point set which is consistent with a given image) and <code>colimage</code> (its orthogonal complement). Both can be used equivlently to the image.</p>
+<h2 id="3-10-Projective-Geometry"><a href="#3-10-Projective-Geometry" class="headerlink" title="3.10 Projective Geometry"></a>3.10 Projective Geometry</h2><p>In order to formally write transformation by linear operations, we made extensive use of <code>homogenoeus coordinates</code> to represent a 3D point as a 4D-vector $(X,Y,Z,1)$ with the last coordinate fixed to 1. This normlization is not always necessary: One can represent 3D points by a general 4D vector:<br>$$<br>\bold{X} &#x3D; (XW, YW, ZW, W)\in \mathbb{R}^4,<br>$$<br>remembering that merely the direction of this vector is of importance. <code>We therefore identify the point in homogeneous coordinates with the line connecting it with the origin</code>. This leads to the definition of projective coordinates.</p>
+<p><code>An n-dimensional projective space</code> $\mathbb{P}^n$ is the set of all one-dimensional subspaces (i.e. lines through the origin) of the vector space $\mathbb{R}^{n+1}$. A point $p\in \mathbb{P}^n$ can then be assigned homogeneous coordinates $\bold{X}&#x3D;(x_1, …, x_{n+1})^T$, among which at least one $x$ is nonzero. For any nonzero $\lambda \in \R$, the coordinates $\bold{Y}&#x3D;(\lambda x_1, …, \lambda x_{n+1})^T$ represent the same point $p$.</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">KMnO4</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://wastoon.github.io/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%89%EF%BC%89/">https://wastoon.github.io/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%89%EF%BC%89/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://wastoon.github.io" target="_blank">KMnO4的行云小扎</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/">计算机视觉</a><a class="post-meta__tags" href="/tags/SFM/">SFM</a></div><div class="post_share"><div class="social-share" data-image="/img/MVG-3-cover.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button button--animated"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.png" target="_blank"><img class="post-qr-code-img" src="/img/wechat.png" alt="wechat"/></a><div class="post-qr-code-desc">wechat</div></li><li class="reward-item"><a href="/img/alipay.png" target="_blank"><img class="post-qr-code-img" src="/img/alipay.png" alt="alipay"/></a><div class="post-qr-code-desc">alipay</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%8C%EF%BC%89/"><img class="next-cover" src="/img/MVG-2-cover.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">多视图几何（二）</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%8C%EF%BC%89/" title="多视图几何（二）"><img class="cover" src="/img/MVG-2-cover.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-23</div><div class="title">多视图几何（二）</div></div></a></div><div><a href="/2022/02/21/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%80%EF%BC%89/" title="MVG-多视图几何（一）"><img class="cover" src="/img/MVG-1-cover.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-21</div><div class="title">MVG-多视图几何（一）</div></div></a></div><div><a href="/2021/11/21/Vison-Transformer%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0%E8%A7%A3%E8%AF%BB%EF%BC%88%E4%B8%80%EF%BC%89/" title="Vison Transformer系列文章解读（一）"><img class="cover" src="/img/DETR.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2021-11-21</div><div class="title">Vison Transformer系列文章解读（一）</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">KMnO4</div><div class="author-info__description">西安交通大学硕士（CV，3D人体姿态估计，动作生成）</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Wastoon"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/Wastoon" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="/mengrongye@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">Everything is the meaning of life.<div class="twopeople"><div class="twopeople"><div class="container"style="height:200px;"><canvas class="illo"width="800"height="800"style="max-width: 200px; max-height: 200px; touch-action: none; width: 640px; height: 640px;"></canvas></div><script src="https://cdn.jsdelivr.net/gh/Justlovesmile/CDN/js/twopeople1.js"></script><script src="https://cdn.jsdelivr.net/gh/Justlovesmile/CDN/js/zdog.dist.js"></script><script id="rendered-js"src="https://cdn.jsdelivr.net/gh/Justlovesmile/CDN/js/twopeople.js"></script><style>.twopeople{margin:0;align-items:center;justify-content:center;text-align:center}canvas{display:block;margin:0 auto;cursor:move}</style></div></div></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Chapter-3-Perspective-Projection"><span class="toc-number">1.</span> <span class="toc-text">Chapter 3 Perspective Projection</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-Mathematics-of-Perspective-Projection"><span class="toc-number">1.1.</span> <span class="toc-text">3.1 Mathematics of Perspective Projection</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-An-Ideal-Perspective-Projection"><span class="toc-number">1.2.</span> <span class="toc-text">3.2 An Ideal Perspective Projection</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-Intrinsic-Camera-Parameters"><span class="toc-number">1.3.</span> <span class="toc-text">3.3 Intrinsic Camera Parameters</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%8E%E4%B8%96%E7%95%8C%E5%9D%90%E6%A0%87%E7%B3%BB%E2%80%94-gt-camera%E5%9D%90%E6%A0%87%E7%B3%BB%E2%80%94-gt-image%E5%9D%90%E6%A0%87%E7%B3%BB%E2%80%94-gt-pixel%E5%9D%90%E6%A0%87%E7%B3%BB"><span class="toc-number">1.4.</span> <span class="toc-text">(从世界坐标系—&gt;camera坐标系—&gt;image坐标系—&gt;pixel坐标系)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-4-The-Intrinsic-Parameter-Matrix"><span class="toc-number">1.5.</span> <span class="toc-text">3.4 The Intrinsic Parameter Matrix</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-5-Spherical-Perspective-Projection"><span class="toc-number">1.6.</span> <span class="toc-text">3.5 Spherical Perspective Projection</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-6-Radial-Distortion"><span class="toc-number">1.7.</span> <span class="toc-text">3.6 Radial Distortion</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-7-Preimage-of-Points-and-Lines"><span class="toc-number">1.8.</span> <span class="toc-text">3.7 Preimage of Points and Lines</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-8-Preimage-and-Colimage-of-Points-and-Lines"><span class="toc-number">1.9.</span> <span class="toc-text">3.8 Preimage and Colimage of Points and Lines</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-9-Summary"><span class="toc-number">1.10.</span> <span class="toc-text">3.9 Summary</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-10-Projective-Geometry"><span class="toc-number">1.11.</span> <span class="toc-text">3.10 Projective Geometry</span></a></li></ol></li></ol></div></div><div class="card-widget card-weibo"><div class="card-content"><div class="item-headline"><i class="fab fa-weibo"></i><span>微博热搜</span></div><div id="weibo-container" style="width: 100%; height: 150px;font-size: 95%;"></div></div></div><script defer="defer" data-pjax="data-pjax" src="/js/card_weibo.js"></script><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%89%EF%BC%89/" title="多视图几何（三）"><img src="/img/MVG-3-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="多视图几何（三）"/></a><div class="content"><a class="title" href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%89%EF%BC%89/" title="多视图几何（三）">多视图几何（三）</a><time datetime="2022-02-23T11:44:57.000Z" title="发表于 2022-02-23 19:44:57">2022-02-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%8C%EF%BC%89/" title="多视图几何（二）"><img src="/img/MVG-2-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="多视图几何（二）"/></a><div class="content"><a class="title" href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%8C%EF%BC%89/" title="多视图几何（二）">多视图几何（二）</a><time datetime="2022-02-23T10:59:40.000Z" title="发表于 2022-02-23 18:59:40">2022-02-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/02/21/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%80%EF%BC%89/" title="MVG-多视图几何（一）"><img src="/img/MVG-1-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MVG-多视图几何（一）"/></a><div class="content"><a class="title" href="/2022/02/21/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%80%EF%BC%89/" title="MVG-多视图几何（一）">MVG-多视图几何（一）</a><time datetime="2022-02-21T10:48:34.000Z" title="发表于 2022-02-21 18:48:34">2022-02-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2021/11/21/Transformer%E7%9A%84%E5%89%8D%E4%B8%96%E4%BB%8A%E7%94%9F/" title="Transformer的前世今生"><img src="/img/transformer.jpeg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Transformer的前世今生"/></a><div class="content"><a class="title" href="/2021/11/21/Transformer%E7%9A%84%E5%89%8D%E4%B8%96%E4%BB%8A%E7%94%9F/" title="Transformer的前世今生">Transformer的前世今生</a><time datetime="2021-11-21T07:16:49.000Z" title="发表于 2021-11-21 15:16:49">2021-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2021/11/21/Vison-Transformer%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0%E8%A7%A3%E8%AF%BB%EF%BC%88%E4%B8%80%EF%BC%89/" title="Vison Transformer系列文章解读（一）"><img src="/img/DETR.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Vison Transformer系列文章解读（一）"/></a><div class="content"><a class="title" href="/2021/11/21/Vison-Transformer%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0%E8%A7%A3%E8%AF%BB%EF%BC%88%E4%B8%80%EF%BC%89/" title="Vison Transformer系列文章解读（一）">Vison Transformer系列文章解读（一）</a><time datetime="2021-11-21T07:05:22.000Z" title="发表于 2021-11-21 15:05:22">2021-11-21</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/MVG-3-cover.png')"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By KMnO4</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font-plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font-minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"><script>if (!window.MathJax) {
+  window.MathJax = {
+    tex: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"]],
+      tags: 'ams'
+    },
+    chtml: {
+      scale: 1.2
+    },
+    options: {
+      renderActions: {
+        findScript: [10, doc => {
+          for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+            const display = !!node.type.match(/; *mode=display/)
+            const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+            const text = document.createTextNode('')
+            node.parentNode.replaceChild(text, node)
+            math.start = {node: text, delim: '', n: 0}
+            math.end = {node: text, delim: '', n: 0}
+            doc.math.push(math)
+          }
+        }, ''],
+        insertScript: [200, () => {
+          document.querySelectorAll('mjx-container:not\([display]\)').forEach(node => {
+            const target = node.parentNode
+            if (target.nodeName.toLowerCase() === 'li') {
+              target.parentNode.classList.add('has-jax')
+            } else {
+              target.classList.add('has-jax')
+            }
+          });
+        }, '', false]
+      }
+    }
+  }
+  
+  const script = document.createElement('script')
+  script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js'
+  script.id = 'MathJax-script'
+  script.async = true
+  document.head.appendChild(script)
+} else {
+  MathJax.startup.document.state(0)
+  MathJax.texReset()
+  MathJax.typeset()
+}</script><script>function addGitalkSource () {
+  const ele = document.createElement('link')
+  ele.rel = 'stylesheet'
+  ele.href= 'https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css'
+  document.getElementsByTagName('head')[0].appendChild(ele)
+}
+
+function loadGitalk () {
+  function initGitalk () {
+    var gitalk = new Gitalk(Object.assign({
+      clientID: '60cf579829afb2b2cdf9',
+      clientSecret: '991dfac32f5e2bd0470bd4b8f5b8a2ef54e9b164',
+      repo: 'Wastoon.github.io',
+      owner: 'Wastoon',
+      admin: ['Wastoon'],
+      id: '83a042c031c36c7a2af91218accf4f91',
+      language: 'zh-CN',
+      perPage: 10,
+      distractionFreeMode: false,
+      pagerDirection: 'last',
+      createIssueManually: true,
+      updateCountCallback: commentCount
+    },false))
+
+    gitalk.render('gitalk-container')
+  }
+
+  if (typeof Gitalk === 'function') initGitalk()
+  else {
+    addGitalkSource()
+    getScript('https://cdn.jsdelivr.net/npm/gitalk@latest/dist/gitalk.min.js').then(initGitalk)
+  }
+}
+
+function commentCount(n){
+  let isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+  if (isCommentCount) {
+    isCommentCount.innerHTML= n
+  }
+}
+
+if ('Gitalk' === 'Gitalk' || !true) {
+  if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+  else loadGitalk()
+} else {
+  function loadOtherComment () {
+    loadGitalk()
+  }
+}</script></div><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="true"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-show-text.min.js" data-mobile="false" data-text="I,Miss,You" data-fontsize="15px" data-random="false" async="async"></script><script>((window.gitter = {}).chat = {}).options = {
+  disableDefaultChat: true,
+};
+document.addEventListener('gitter-sidecar-ready', (e) => {
+  const GitterChat = e.detail.Chat
+  let chat
+
+  function initGitter () {
+    chat = new GitterChat({
+      room: 'OMGsitetalk/community',
+      activationElement: '#chat_btn'
+    });
+  }
+
+  initGitter()
+
+  if (false) {
+    document.addEventListener('pjax:complete', () => {
+      chat.destroy()
+      initGitter()
+    })
+  }
+
+})</script><script src="https://sidecar.gitter.im/dist/sidecar.v1.js" async="async" defer="defer"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_clock_injector_config(){
+    var parent_div_git = document.getElementsByClassName('sticky_layout')[0];
+    var item_html = '<div class="card-widget card-clock"><div class="card-glass"><div class="card-background"><div class="card-content"><div id="hexo_electric_clock"><img class="entered loading" id="card-clock-loading" src="https://cdn.jsdelivr.net/gh/tzy13755126023/BLOG_SOURCE/theme_f/loading.gif" style="height: 120px; width: 100%;" data-ll-status="loading"/></div></div></div></div></div>';
+    console.log('已挂载butterfly_clock')
+    parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+    }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var flag = 0;
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_clock_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_clock_injector_config();
+  }
+  </script><script src="https://pv.sohu.com/cityjson?ie=utf-8"></script><script data-pjax src="https://cdn.jsdelivr.net/npm/hexo-butterfly-clock/lib/clock.min.js"></script><script async src="//at.alicdn.com/t/font_2032782_8d5kxvn09md.js"></script><script data-pjax src="https://cdn.jsdelivr.net/npm/hexo-filter-gitcalendar/lib/gitcalendar.js"></script><script data-pjax>
+                        function gitcalendar_injector_config(){
+                          var parent_div_git = document.getElementById('recent-posts');
+                          var item_html = '<div class="recent-post-item" style="width:100%;height:auto;padding:10px;"><style>#git_container{min-height: 280px}@media screen and (max-width:650px) {#git_container{min-height: 0px}}</style><div id="git_loading" style="width:10%;height:100%;margin:0 auto;display: block;"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 50 50" style="enable-background:new 0 0 50 50" xml:space="preserve"><path fill="#d0d0d0" d="M25.251,6.461c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615V6.461z" transform="rotate(275.098 25 25)"><animatetransform attributeType="xml" attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="0.6s" repeatCount="indefinite"></animatetransform></path></svg><style>#git_container{display: none;}</style></div><div id="git_container"></div></div>';
+                          parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+                          console.log('已挂载gitcalendar')
+                          }
+
+                        if( document.getElementById('recent-posts') && (location.pathname ==='/'|| '/' ==='all')){
+                            gitcalendar_injector_config()
+                            GitCalendarInit("https://gitcalendar.akilar.top/api?Wastoon",['#ebedf0', '#fdcdec', '#fc9bd9', '#fa6ac5', '#f838b2', '#f5089f', '#c4067e', '#92055e', '#540336', '#48022f', '#30021f'],'Wastoon')
+                        }
+                      </script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>

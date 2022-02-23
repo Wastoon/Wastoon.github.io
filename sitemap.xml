@@ -2,6 +2,20 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://wastoon.github.io/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%89%EF%BC%89/</loc>
+    
+    <lastmod>2022-02-23</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://wastoon.github.io/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%8C%EF%BC%89/</loc>
+    
+    <lastmod>2022-02-23</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://wastoon.github.io/2022/02/21/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%80%EF%BC%89/</loc>
     
     <lastmod>2022-02-23</lastmod>
@@ -81,7 +95,7 @@
   </url>
   
   <url>
-    <loc>https://wastoon.github.io/tags/%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/</loc>
+    <loc>https://wastoon.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/</loc>
     <lastmod>2022-02-23</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
@@ -102,14 +116,14 @@
   </url>
   
   <url>
-    <loc>https://wastoon.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/</loc>
+    <loc>https://wastoon.github.io/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/</loc>
     <lastmod>2022-02-23</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
-    <loc>https://wastoon.github.io/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/</loc>
+    <loc>https://wastoon.github.io/tags/%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/</loc>
     <lastmod>2022-02-23</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
@@ -132,13 +146,6 @@
   </url>
   
   <url>
-    <loc>https://wastoon.github.io/categories/%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/</loc>
-    <lastmod>2022-02-23</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
     <loc>https://wastoon.github.io/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/</loc>
     <lastmod>2022-02-23</lastmod>
     <changefreq>daily</changefreq>
@@ -146,7 +153,7 @@
   </url>
   
   <url>
-    <loc>https://wastoon.github.io/categories/%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/</loc>
+    <loc>https://wastoon.github.io/categories/%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/</loc>
     <lastmod>2022-02-23</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
@@ -154,6 +161,13 @@
   
   <url>
     <loc>https://wastoon.github.io/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/</loc>
+    <lastmod>2022-02-23</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://wastoon.github.io/categories/%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/</loc>
     <lastmod>2022-02-23</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
