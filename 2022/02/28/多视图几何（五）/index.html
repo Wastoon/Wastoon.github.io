@@ -1,0 +1,476 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>多视图几何（五） | KMnO4的行云小扎</title><meta name="keywords" content="计算机视觉,SFM"><meta name="author" content="KMnO4"><meta name="copyright" content="KMnO4"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Chapter5 Reconstruction from Two Views5.1. Problem FormulationIn the last sections, we discussed how to identify point correspondences between two consecutive frames. In this section, we will trackle">
+<meta property="og:type" content="article">
+<meta property="og:title" content="多视图几何（五）">
+<meta property="og:url" content="https://wastoon.github.io/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%94%EF%BC%89/index.html">
+<meta property="og:site_name" content="KMnO4的行云小扎">
+<meta property="og:description" content="Chapter5 Reconstruction from Two Views5.1. Problem FormulationIn the last sections, we discussed how to identify point correspondences between two consecutive frames. In this section, we will trackle">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://wastoon.github.io/img/MVG-5-cover.png">
+<meta property="article:published_time" content="2022-02-28T07:02:52.000Z">
+<meta property="article:modified_time" content="2022-02-28T07:44:50.295Z">
+<meta property="article:author" content="KMnO4">
+<meta property="article:tag" content="计算机视觉">
+<meta property="article:tag" content="SFM">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://wastoon.github.io/img/MVG-5-cover.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://wastoon.github.io/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%94%EF%BC%89/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><meta/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '多视图几何（五）',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-02-28 15:44:50'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const fontSizeVal = saveToLocal.get('global-font-size')
+    if (fontSizeVal !== undefined) {
+      document.documentElement.style.setProperty('--global-font-size', fontSizeVal + 'px')
+    }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-butterfly-clock/lib/clock.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/l-lin/font-awesome-animation/dist/font-awesome-animation.min.css" media="defer" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-butterfly-tag-plugins-plus@latest/lib/tag_plugins.min.css" media="defer" onload="this.media='all'"><script async src="https://cdn.jsdelivr.net/npm/hexo-butterfly-tag-plugins-plus@latest/lib/carousel-touch.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-filter-gitcalendar/lib/gitcalendar.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/icon.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 网站统计</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 自留地</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 吉他谱</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> Movie</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 嗑盐&amp;摸鱼</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 文献</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 经典开源项目</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 个人项目</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/MVG-5-cover.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">KMnO4的行云小扎</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 网站统计</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 自留地</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 吉他谱</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> Movie</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 嗑盐&amp;摸鱼</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 文献</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 经典开源项目</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 个人项目</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">多视图几何（五）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-02-28T07:02:52.000Z" title="发表于 2022-02-28 15:02:52">2022-02-28</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-02-28T07:44:50.295Z" title="更新于 2022-02-28 15:44:50">2022-02-28</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/">计算机视觉</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/SFM/">SFM</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">4.9k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>28分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="多视图几何（五）"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="Chapter5-Reconstruction-from-Two-Views"><a href="#Chapter5-Reconstruction-from-Two-Views" class="headerlink" title="Chapter5 Reconstruction from Two Views"></a>Chapter5 Reconstruction from Two Views</h1><h2 id="5-1-Problem-Formulation"><a href="#5-1-Problem-Formulation" class="headerlink" title="5.1. Problem Formulation"></a>5.1. Problem Formulation</h2><p>In the last sections, we discussed how to identify point correspondences between two consecutive frames. In this section, we will trackle the next next problem, namely that of <code>reconstructing the 3D geometry of cameras and points</code>.<br>To this end, we will make the following assumptions:</p>
+<ul>
+<li>We assume that we are given a <code>set of corresponding points</code> in two frames taken with the same camera from different vantage points.</li>
+<li>We assume that <code>the scene is static</code>, i.e. none of the observed 3D points moved during the camera motion.</li>
+<li>We also assume that the <code>intrinsic camera (calibration) parameter are known</code>.</li>
+</ul>
+<p>We will first estimate the <code>camera motion</code> from the set of corresponding points. Once we know the relative location and orientation of the cameras, we can reconstruct the 3D location of all corresponding points by <code>triangulation</code>.</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Wastoon/myPicGo/img/ce7a66d1ad07ba3805814dab6939ac3c.png"></p>
+<p>Goal: Estimate camera motion and 3D scene structure from two views.</p>
+<h2 id="5-2-The-Reconstruction-Problem"><a href="#5-2-The-Reconstruction-Problem" class="headerlink" title="5.2 The Reconstruction Problem"></a>5.2 The Reconstruction Problem</h2><p>In general 3D reconstruction is a challenging problem. If we are given two views with 100 feature points in each of them, then we have 200 point coordinates in 2D. The goal is to estimate</p>
+<ul>
+<li>6 parameters modeling the camera motion $R, T$ and</li>
+<li>$100\times 3$ coordinates for the 3D points $X_j$.</li>
+</ul>
+<p>This could be done by minimizing the <code>projection error</code>:<br>$$<br>E(R, T, X_1, …,X_{100}) &#x3D; \sum_j||x_1^j - \pi(X_j)||^2 + ||x_2^j-\pi(R, T, X_j)||^2.<br>$$</p>
+<p>This amounts to a <code>difficult optimization problem</code> called <code>bundle adjustment</code>.</p>
+<p>Before we look into this problem, we will first study an elegant solution to entirely get rid of the 3D point coordinates. It leads to the well-known 8-point algorithm.</p>
+<h2 id="5-3-Epipolar-Geometry-Some-Notation"><a href="#5-3-Epipolar-Geometry-Some-Notation" class="headerlink" title="5.3 Epipolar Geometry: Some Notation"></a>5.3 Epipolar Geometry: Some Notation</h2><p><img src="https://cdn.jsdelivr.net/gh/Wastoon/myPicGo/img/7b5fd6359a9d025a7abfc91546279e99.png"></p>
+<p>The projections of a point $X$ onto the two images are denoted by $x_1$ and $x_2$. The <code>optical centers</code> of each camera are denoted by $o_1$ and $o_2$. The intersections of the line $(o_1, o_2)$ with each image plane are called the <code>epipoles</code> $e_1$ and $e_2$. The intersections between the <code>epipolar plane </code> $(o_1, o_2, X)$ and the image planes are called <code>epipolar lines </code> $l_1$ and $l_2$. There is one epipolar plane for each 3D point $X$.</p>
+<h2 id="5-4-The-Epipolar-Constraint"><a href="#5-4-The-Epipolar-Constraint" class="headerlink" title="5.4 The Epipolar Constraint"></a>5.4 The Epipolar Constraint</h2><p>We know that $x_1$ (in homogeneous coordinates) is the projection of a 3D point $X$. Given known camera parameters $(K&#x3D;1)$ and no rotation or translation of the first camera, we merrly have a projection with unknown depth $\lambda_1$. From the first to the second frame we additionally have a camera rotation $R$ and a translation $T$ followed by a projection. This gives the equations:<br>$$<br>\lambda_1 x_1 &#x3D; X, \quad \lambda_2 x_2 &#x3D; RX+T.<br>$$</p>
+<p>Inserting the first equation into the second, we get:<br>$$<br>\lambda_2 x_2 &#x3D; R(\lambda_1 x_1) + T.<br>$$</p>
+<p>Now we remove the translation by multiplying with $\hat{T}$ $(\hat{T}v \equiv T\times v)$:(两边同时乘以$\hat{T}$这个反对称矩阵,而$\hat{T}T$相当于向量$T$自己和自己做叉乘，即为0向量，这样一来，就可以把上式中的加法去掉)<br>$$<br>\lambda_2 \hat{T}x_2 &#x3D; \lambda_1 \hat{T}Rx_1<br>$$</p>
+<p>And projection onto $x_2$ gives the <code>epipolar constraint</code>:(把两边的向量都投影到$x_2$方向上时，即两边的向量同时和$x_2$向量做内积，也就是两边同时乘以向量$x_2^T$，那左边的向量$\hat{T}x_2&#x3D;T\times x_2$本身与$x_2$正交，故内积为标量0，而右边就只剩下$\lambda_1 x_2^T\hat{T}Rx_1$，进而$\lambda_1 \neq 0$表示我们观察的3D物体点不在相机的光心处，所以可以把$\lambda_1$约去，最终就剩下了下面的式子：)<br>$$<br>x_2^T \hat{T}Rx_1 &#x3D; 0 \quad( x_1 和x_2都是2D坐标的齐次形式(x,y,1))<br>$$</p>
+<p>The epipolar constraint:<br>$$<br>x_2^T \hat{T}Rx_1 &#x3D; 0<br>$$<br>provides a <code>relation between the 2D point coordinates</code> of a 3D point in each of the two images <code>and  the camera transformation parameters</code>. The original 3D point coordinates have been removed. The matrix:<br>$$<br>E &#x3D; \hat{T}R \in \mathbb{R}^{3\times 3}<br>$$<br>is called the <code>essential matrix</code>. The <code>epipolar constraint</code> is also known as <code>essential constraint</code> or <code>bilinear constraint</code>. <code>Geometrically</code>, this constraint states that the three vectors $\overrightarrow{o_1 X}$, $\overrightarrow{o_2o_1}$ and $\overrightarrow{o_2X}$ form a plane, i.e. the triple product of those vectors (measuring the volume of the parallelpiped) is zero: In coordinates of the second frame $Rx_1$ gives the direction of the vector $\overrightarrow{o_1X}$; $T$ gives the direction of $\overrightarrow{o_2o_1}$, and $x_2$ is proportional to the vector $\overrightarrow{o_2X}$ such that:<br>$$<br>volume &#x3D; x_2^T (T\times Rx_1) &#x3D; 0<br>$$</p>
+<h2 id="5-5-Properties-of-the-Essential-Matrix-E"><a href="#5-5-Properties-of-the-Essential-Matrix-E" class="headerlink" title="5.5 Properties of the Essential Matrix E"></a>5.5 Properties of the Essential Matrix E</h2><p>The space of all essential matrices is called the <code>essential space</code>:<br>$$<br>\varepsilon \equiv \{\hat{T}R | R\in SO(3), T\in \mathbb{R}^3\} \subset \mathbb{R}^{3\times 3}<br>$$<br><code>Theorem [Huang &amp; Faugeras, 1989] (Characterization of the essential matrix)</code> A nonzero matrix $E\in \mathbb{R}^{3\times 3}$ is an essential matrix if and only if $E$ has a singular value decomposition (SVD)$E &#x3D; U\Sigma V^T$ with:<br>$$<br>\Sigma &#x3D; diag{\sigma, \sigma, 0}<br>$$<br>for some $\sigma &gt; 0$ and $U, V \in SO(3)$.</p>
+<p><code>Theorem (Pose recovery from the essential matrix):</code> There exist exactly two relative poses $(R, T)$ with $R\in SO(3)$ and $T\in \mathbb{R}^3$ corresponding to an essential matrix $E\in \varepsilon$. For $E&#x3D;U\Sigma V^T$ we have:</p>
+<p>$$<br>(\hat{T_1}, R_1) &#x3D; (UR_Z(+\frac{\pi}{2})\Sigma U^T,  UR_Z(+\frac{\pi}{2})\Sigma V^T), \<br>$$</p>
+<p>$$<br>(\hat{T_2}, R_2) &#x3D; (UR_Z(-\frac{\pi}{2})\Sigma U^T,  UR_Z(-\frac{\pi}{2})\Sigma V^T).<br>$$</p>
+<p>(式中我们定义的$R_Z(\theta)&#x3D;\left(\begin{matrix}<br>    cos(\theta) &amp;-sin(\theta) &amp;0 \\<br>    sin(\theta) &amp;cos(\theta) &amp;0\\<br>    0 &amp;0 &amp; 0<br>\end{matrix}\right)$, 所以<br>$R_Z(+\frac{\pi}{2})&#x3D;\left(\begin{matrix}<br>    0 &amp; -1 &amp;0 \\<br>    1 &amp;0 &amp;0\\<br>    0 &amp;0 &amp; 0<br>\end{matrix}\right)$, $R_Z(-\frac{\pi}{2})&#x3D;\left(\begin{matrix}<br>    0 &amp; 1 &amp;0 \\<br>    -1 &amp;0 &amp;0\\<br>    0 &amp;0 &amp; 0<br>\end{matrix}\right)$)</p>
+<p>In general, only one of these gives meaningful (positive) depth values.</p>
+<h2 id="5-6-A-Basic-Reconstruction-Algorithm"><a href="#5-6-A-Basic-Reconstruction-Algorithm" class="headerlink" title="5.6 A Basic Reconstruction Algorithm"></a>5.6 A Basic Reconstruction Algorithm</h2><p>We have seen that the 2D-coordinates of each 3D point are coupled to the camera parameters $R$ and $T$ through an epipolar constraint. In the following, we will derive a 3D reconstruction algorithm which proceeds as follows:</p>
+<ul>
+<li><code>Recover the essential matrix</code> $E$ from the epipolar constraints associated with a set of point pairs.</li>
+<li><code>Extract the relative translation and rotation</code> from the essential matrix $E$. (本质矩阵的前两个特征值相等，且第三个特征值为0)</li>
+</ul>
+<p>In general, the matrix $E recovered from a set of epipolar constrains will not be an essential matrix. One can resolve this problem in two ways:</p>
+<ul>
+<li>Recover some matrix $E\in\mathbb{R}^{3\times 3}$ from the epipolar constraints and then project it onto the essential space.</li>
+<li>Optimize the epipolar constraints in the essential space.</li>
+</ul>
+<p>While the second approach is in principle more accurate it involves a nonlinear constrained optimization. So we will pursue the first approach which is simpler and faster.</p>
+<h2 id="5-7-The-Eight-Point-Linear-Algorithm"><a href="#5-7-The-Eight-Point-Linear-Algorithm" class="headerlink" title="5.7 The Eight-Point Linear Algorithm"></a>5.7 The Eight-Point Linear Algorithm</h2><p>First we rewrite the epipolar constrainr as a scalar product in the elements of the matrix $E$ and the coordinates of the points $\textbf{x}_1 $ and $\textbf{x}_2$. Let </p>
+<p>$$<br>E^s &#x3D; (\theta_{11}, \theta_{21}, \theta_{31},<br>       \theta_{12}, \theta_{22}, \theta_{32},<br>       \theta_{13}, \theta_{23}, \theta_{33})^T \in \mathbb{R}^9<br>$$</p>
+<p>be the vector of elements of $E$ and</p>
+<p>$$<br>a &#x3D; \textbf{x}_1 \otimes \textbf{x}_2<br>$$</p>
+<p>the <code>Kronecker product</code> of the vectors $\textbf{x}_i &#x3D; (x_i, y_i, z_i)$, defined as $a &#x3D; (x_1x_2, x_1y_2, x_1z_2, y_1x_2, y_1y_2, y_1z_2, z_1x_2, z_1y_2, z_1z_2)^T \in \mathbb{R}^9$.</p>
+<p>Then the epipolar constraint can be written as:</p>
+<p>$$<br>\textbf{x}_2^TE\textbf{x}_1 &#x3D; a^TE^s &#x3D; 0.<br>$$</p>
+<p>For $n$ point pairs, we can combine this into the linear system:</p>
+<p>$$<br>\chi E^s &#x3D; 0, \quad \chi &#x3D; (a^1, a^2, …, a^n)^T.<br>$$</p>
+<p>According to </p>
+<p>$$<br>\chi E^s &#x3D; 0, \quad with \chi &#x3D; (a^1,a^2, …, a^n)^T.<br>$$</p>
+<p>we see that the vector of coefficients of the essential matrix $E$ defines the <code>null space of the matrix</code> $\chi$. In order for the abover system to have a unique solution (up to a scaling factor and ruling out the trivial solution $E&#x3D;0$), the <code>rank of the matrix</code> $\chi$ <code>needs to be exactly 8</code>. Therefore we need at least 8 point pairs.</p>
+<p>In certain <code>degenerate cases</code>, the solution for the essential matrix is not unique even if we have 8 or more point pairs. One such example is the case that all points lie on the a line or on a plane.<br>Clearly, we will not be able to recover the sign of $E$. Since with each $E$, there are two possible assignments of rotation $R$ and translation $T$, we therefore end up with four possible solutions for rotation and translation.</p>
+<h2 id="5-8-Projection-onto-Essential-Space"><a href="#5-8-Projection-onto-Essential-Space" class="headerlink" title="5.8 Projection onto Essential Space"></a>5.8 Projection onto Essential Space</h2><p>The numerically estimated coefficients $E^s$ will in general not correspond to an essential matrix. One can resolve this problem by projecting it back to the essential space:</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Wastoon/myPicGo/img/504311d8792556835b660121b51b9990.png"></p>
+<p><code>Theorem (Projection onto essential space)</code>: Let $F \in \mathbb{R}^{3\times 3}$ be an arbitrary matrix with SVD<br>$F &#x3D; Udiag{\lambda_1, \lambda_2, \lambda_3}V^T, \lambda_1\geq \lambda_2\geq \lambda_3$. Then the essential matrix $E$ which minimizes the Frobenius norm $||F-E||^2_t$ is given by:</p>
+<p>$$<br>E &#x3D; Udiag{\sigma ,\sigma, 0 }V^T, \quad with \ \sigma&#x3D;\frac{\lambda_1 + \lambda_2}{2}.<br>$$</p>
+<h2 id="5-9-Eight-Point-Algorithm-Longuet-Higgins-1981"><a href="#5-9-Eight-Point-Algorithm-Longuet-Higgins-1981" class="headerlink" title="5.9 Eight Point Algorithm (Longuet-Higgins 1981)"></a>5.9 Eight Point Algorithm (Longuet-Higgins 1981)</h2><p>Given a set of $n&#x3D;8$ or more point pairs $\textbf{x}_1^i$, $\textbf{x}_2^i$:</p>
+<ul>
+<li><p><code>Compute an approximation of the essential matrix</code>.Construct the matrix $\chi &#x3D; (a^1, a^2, …, a^n)^T$, where $a^i &#x3D; \textbf{x}<em>1^i \otimes \textbf{x}<em>2^i$. Find the vector $E^s\in \mathbb{R}^9$ which minimizes $||\chi E^s||$ as the ninth column of $V</em>{\chi}$ in the SVD $\chi &#x3D;U</em>{\chi}\Sigma_{\chi}V^T_{\chi}$. Unstack $E^s$ into $3\times 3$-matrix $E$.</p>
+</li>
+<li><p><code>Project onto essential space</code>. Compute the SVD $E&#x3D;Udiag{\sigma_1, \sigma_2, \sigma_3}V^T$. Since in the reconstruction, $E$ is only defined up to a scalar, we project $E$ onto the <code>normlized essential space</code> by replacing the singular values $\sigma_1, \sigma_2, \sigma_3$ with 1, 1, 0.</p>
+</li>
+<li><p><code>Recover the displacement from the essential matrix</code>. The four possible solutions for rotation and translation are:</p>
+<p>  $$<br>  R &#x3D; UR_Z^T(\pm \frac{\pi}{2})V^T, \quad \hat{T} &#x3D; UR_Z(\pm \frac{\pi}{2})\Sigma U^T,<br>  $$</p>
+<p>  with a rotation by $\pm \frac{\pi}{2}$ around $z$:</p>
+<p>  $$<br>  R_Z^T(\pm \frac{\pi}{2}) &#x3D; \left(\begin{matrix}<br>  0 &amp;\pm 1 &amp; 0 \\<br>  \mp 1 &amp; 0 &amp; 0 \\<br>  0 &amp; 0 &amp; 1<br>  \end{matrix} \right).<br>  $$</p>
+</li>
+</ul>
+<h2 id="5-10-Do-we-need-Eight-Points-用5点法也可求解"><a href="#5-10-Do-we-need-Eight-Points-用5点法也可求解" class="headerlink" title="5.10 Do we need Eight Points? (用5点法也可求解)"></a>5.10 Do we need Eight Points? (用5点法也可求解)</h2><p>The above reasoning showed that we need at least eight points in order for the matrix $\chi$ to have rank 8 and therefore guarantee a unique solution for $E$. Yet, one can take into account the special structure of $E$. <code>The space of essential matrices is actually a five dimensional space</code>, i.e. $E$ only has 5 (and not 9) degrees of freedom.</p>
+<p>A simple way to <code>take into account the algebraic properties of</code> $E$ is to make use of the fact that $det(E)&#x3D;0$. If now we have only 7 point pairs, the null space of $\chi$ will have (at least) Dimension 2, spanned by two vectors $E_1$ and $E_2$. Then we can solve for $E$ by determining $\alpha$ such that:<br>$$<br>det(E) &#x3D; det(E_1 + \alpha E_2) &#x3D; 0.<br>$$</p>
+<p>Along similar lines, <code>Kruppa proved in 1913 that one needs only five point pairs to recover</code> $(R, T)$. In the case of degenerate motion (for example planar or circular motion), one can resolve the problem with even fewer point pairs.</p>
+<h2 id="5-11-Limitations-and-Further-Extensions"><a href="#5-11-Limitations-and-Further-Extensions" class="headerlink" title="5.11 Limitations and Further Extensions"></a>5.11 Limitations and Further Extensions</h2><p>Among the four possible solutions for $R$ and $T$, there is generally <code>only one meaningful one</code> (which assigns positive depth to all points).</p>
+<p><code>The algorithm fairs if the translation is exactly 0</code>, since then $E&#x3D;0$ and nothing can be recovered. Due to noise this typically does not happen.</p>
+<p>In the case of infiitesimal view point change, one can adapt the eight point algorithm to the <code>continuous motion case</code>, where the epipolar constraint is replaced by the <code>continuous epipolar constraint</code>. Rather than recovering $(R, T)$ one recovers the linear and angular velocity of the camera.</p>
+<p>In the case of independently moving objects, one can generalize the epipolar constraint. For two motions for example we have:</p>
+<p>$$<br>(x_2^TE_1x_1)(x_2^TE_2x_1) &#x3D; 0<br>$$</p>
+<p>with two essential matrices $E_1$ and $E_2$. Given a sufficiently large number of point pairs, one can solve the respective equations for multiple essential matrices using polynomial factorization.</p>
+<h2 id="5-12-Structure-Reconstruction"><a href="#5-12-Structure-Reconstruction" class="headerlink" title="5.12 Structure Reconstruction"></a>5.12 Structure Reconstruction</h2><p>The linear eight-point algorithm allowed us to estimate the camera transformation parameters $R$ and $T$ from a set of corresponding point pairs. Yet, the essential matrix $E$ and hence the translation $T$ are <code>only defined up to an arbitrary scale </code>$\gamma \in \mathbb{R}^{+}$, with $||E||&#x3D;||T||&#x3D;1$. After recovering $R$ and $T$, we therefore have for point $X^j$:</p>
+<p>$$<br>\lambda_2^j \textbf{x}_2^j &#x3D; \lambda_1^j R\textbf{x}_1^j + \gamma T, \quad j&#x3D;1, …, n,<br>$$</p>
+<p>with unknown scale parameters $\lambda_i^j$. We can eliminate one of these scales by applying $\widehat{\textbf{x}_2^j}$:</p>
+<p>$$<br>\lambda_1^j \widehat{\textbf{x}_2^j}R\textbf{x}_1^j + \gamma\widehat{\textbf{x}_2^j}T &#x3D; 0, \quad j&#x3D;1,…,n.<br>$$</p>
+<p>This corresponds to $n$ <code>linear systems</code> of the form:</p>
+<p>$$<br>(\widehat{\textbf{x}_2^j}R\textbf{x}_1^j, \widehat{\textbf{x}_2^j}T)\left(\begin{matrix}<br>    \lambda_1^j \\<br>    \gamma<br>\end{matrix}\right) &#x3D; 0, \quad j&#x3D;1,…,n.<br>$$</p>
+<p>Combining the parameters $\vec{\lambda}&#x3D;(\lambda_1^1, \lambda_1^2,…,\lambda_1^n, \gamma)^T\in \mathbb{R}^{n+1}$, we get the linear equation system</p>
+<p>$$<br>M\vec{\lambda} &#x3D; 0<br>$$</p>
+<p>with</p>
+<p>$$<br>M \equiv \left(\begin{matrix}<br>    \widehat{\textbf{x}_2^1}R\textbf{x}_1^1 &amp;0 &amp; 0&amp; 0 &amp; 0 &amp; \widehat{\textbf{x}_2^1}T\\<br>    0 &amp;\widehat{\textbf{x}_2^2}R\textbf{x}_1^2 &amp; 0&amp; 0 &amp; 0 &amp; \widehat{\textbf{x}_2^2}T\\<br>    0 &amp; 0 &amp;\ddots &amp;0 &amp; 0 &amp;\vdots \\<br>    0 &amp;0 &amp; 0&amp; \widehat{\textbf{x}_2^{n-1}}R\textbf{x}_1^{n-1} &amp; 0 &amp; \widehat{\textbf{x}_2^{n-1}}T\\<br>    0 &amp; 0 &amp; 0&amp; 0 &amp; \widehat{\textbf{x}_2^n}R\textbf{x}_1^n &amp; \widehat{\textbf{x}_2^n}T\\<br>\end{matrix}\right)<br>$$<br>(求解的优化问题是:</p>
+<p>$$<br>\min_{\vec{\lambda}} ||M\vec{\lambda}||^2 &#x3D; \min_{\vec{\lambda}}\lambda^TM^TM\lambda, \quad ||\lambda||&#x3D;1.<br>$$</p>
+<p>Note: 进一步，我们让优化目标函数对$\vec{\lambda}$求导数，导数最小处就是$\vec{\lambda}$的解。令导数为0有: $2M^TM\vec{\lambda}&#x3D;0$，进一步，由于矩阵可以通过其特征值进行等价代换，即著名的$Ax&#x3D;\lambda x$中，一个矩阵$A$乘以他的一个特征向量$x$等于该特征向量对应的特征值$\lambda$与该特征向量$x$的乘积,因此可以将上面的导数$2M^TM\vec{\lambda}&#x3D;0$进行变换，假设矩阵$M^TM$的一个最小的一个接近于0的特征值是$\eta$，且该特征值对应的特征向量为$p$,即$M^TM p &#x3D; \eta p$,那么上面的导数就可以被估计成$2M^TMp &#x3D; \eta p \approx 0$,也就是说，原来优化问题的解$\vec{\lambda}$近似是矩阵$M^TM$的最小特征值对应的特征向量，求解完毕。 )</p>
+<p>The linear least squares estimate for $\vec{\lambda}$ is given by the eigenvector corresponding to the smallest eigenvalue of $M^TM$. It is <code>only defined up to a global scale</code>. It reflects the <code>ambiguity</code> that the camera has moved twice the distance, the scane is twice larger and twice as far away.</p>
+<h2 id="5-13-Example"><a href="#5-13-Example" class="headerlink" title="5.13 Example"></a>5.13 Example</h2><p><img src="https://cdn.jsdelivr.net/gh/Wastoon/myPicGo/img/cc3c6012ccdec7463443384d1b416adc.png"></p>
+<h2 id="5-14-Optimality-in-Noisy-Real-World-Conditions"><a href="#5-14-Optimality-in-Noisy-Real-World-Conditions" class="headerlink" title="5.14 Optimality in Noisy Real World Conditions"></a>5.14 Optimality in Noisy Real World Conditions</h2><p>The eight-point algorithm discussed before has several nice properties. In particular, we found <code>closed-form solutions</code> to estimate the camera parameters and the 3D structure, based on <code>singular value decomposition</code>. However, if we have noisy data ${\tilde{\textbf{x}_1}}$, ${\tilde{\textbf{x}}_2}$ (correspondences not exact or even incorrect), then we have:</p>
+<ul>
+<li>no quarantee that $R$ and $T$ are as close as possible to the true solution.</li>
+<li>no guarantee that we will get a consistent reconstruction.</li>
+</ul>
+<p><img src="https://cdn.jsdelivr.net/gh/Wastoon/myPicGo/img/7b5fd6359a9d025a7abfc91546279e99.png"></p>
+<h2 id="5-15-Nonlinear-Optimization-Methods"><a href="#5-15-Nonlinear-Optimization-Methods" class="headerlink" title="5.15 Nonlinear Optimization Methods"></a>5.15 Nonlinear Optimization Methods</h2><p>In order to take noise and statistical fluctutation into account, one can revert to a <code>Bayesian formulation</code> and determine the most likely camera transformlation $R, T$ and ‘true’ 2D coordinates $\textbf{x}$ given the measured coordinates $\tilde{\textbf{x}}$, by performing a <code>maximum a posteriori estimate</code>:</p>
+<p>$$<br>\\argmax_{\textbf{x}, R, T}\mathcal{P}(\textbf{x}, R, T|{\tilde{\textbf{x}}})&#x3D;\\argmax_{\textbf{x}, R, T}\mathcal{P}(\tilde{\textbf{x}}|\textbf{x}, R, T)\mathcal{P}(\textbf{x}, R, T)<br>$$</p>
+<p>This approach will however involve modeling probability densities $\mathcal{P}$ on the fairly complicated space $SO(3)\times \mathbb{S}^2$ of rotation and translation parameters, as $R\in SO(3)$ and $T\in \mathbb{S}^2$ (3D translation with unit length).</p>
+<p>Alternatively, one can perform a <code>constrained optimization</code> by minimizing a cost function (similarity to measurements):</p>
+<p>$$<br>\phi(\textbf{x}, R, T) &#x3D; \sum_{j&#x3D;1}^n \sum_{i&#x3D;1}^2 ||\tilde{\textbf{x}_i^j}-\textbf{x}_i^j||^2<br>$$</p>
+<p>suject to (consistent geometry):</p>
+<p>$$<br>\textbf{x}_2^{jT}\hat{T}R\textbf{x}_1^j &#x3D; 0, \quad \textbf{x}_1^{jT}e_3&#x3D;1, \quad \textbf{x}_2^{jT}e_3 &#x3D; 1, j&#x3D;1,2,…,n. (where \ e_3&#x3D;(0,0,1))<br>$$</p>
+<h2 id="5-16-Bundle-Adjustment"><a href="#5-16-Bundle-Adjustment" class="headerlink" title="5.16 Bundle Adjustment"></a>5.16 Bundle Adjustment</h2><p>Interestingly, the unknown depth parameters $\lambda_i$ <code>do not actually appear in the above cost functions</code>.<br>The depth parameters appear directly in the <code>unconstrained optimization problem</code>:</p>
+<p>$$<br>\sum_{j&#x3D;1}^n ||{\textbf{x}_1^j}-\pi_1(\textbf{X}{^j})||^2 + ||\tilde{\textbf{x}_2^j}-\pi_2(\textbf{X}{^j})||^2,<br>$$</p>
+<p>where $\pi_i$denotes the projections onto the two images. Expressed in coordinates of the first camera frame, this is equal to the cost function:</p>
+<p>$$<br>\phi(\textbf{x}<em>1, R, T, \lambda) &#x3D; \sum</em>{j&#x3D;1}^n ||\tilde{\textbf{x}_1^j}-\textbf{x}_1^j||^2 + ||\tilde{\textbf{x}_2^j} - \pi(R\lambda_1^j\textbf{x}_1^j+T)||^2.<br>$$</p>
+<p>This optimization procedure is known as <code>bundle adjustment</code>. The constrained optimization and the unconstrained bundle adjustment can be seen as <code>different parameterizations of the same optimization objective</code>.</p>
+<h2 id="5-17-Degenerate-Configurations"><a href="#5-17-Degenerate-Configurations" class="headerlink" title="5.17 Degenerate Configurations"></a>5.17 Degenerate Configurations</h2><p>The eight-point algorithm only provides unique solutions (up to a scalar factor) if all 3D points are in a “general position”. This is no longer the case for certain <code>degenerate configurations</code>, for which all points lie on certain 2D surfaces which are called <code>critical surfaces</code>.</p>
+<p>While most critical configurations do not actually arise in practice, a specific degenerate configuration which does arise often is the case that <code>all points lie on 2 2D plane</code> (such as floors, table, walls,…).</p>
+<p>For the structure-from-motion problem in the context of points on a plane, one can exploit additional constraints which leads to the so-called <code>four-point algorithm</code>.</p>
+<h2 id="5-18-Planar-Homographies"><a href="#5-18-Planar-Homographies" class="headerlink" title="5.18 Planar Homographies"></a>5.18 Planar Homographies</h2><p>Let us assume that all points lie on a plane. If $\textbf{X}_1\in\mathbb{R}^3$ denotes the point coordinates in the first frame, and these lie on a plane with normal vector $N\in \mathbb{S}^2$, then we have:</p>
+<p>$$<br>N^T\textbf{X}_1 &#x3D; d \Leftrightarrow\frac{1}{d}N^T\textbf{X}_1 &#x3D; 1.<br>$$</p>
+<p>In frame two, we therefore have the coordinates:</p>
+<p>$$<br>\textbf{X}_2&#x3D;R\textbf{X}_1 +T &#x3D; R\textbf{X}_1 + T\frac{1}{d}N^T\textbf{X}_1 &#x3D; (R+\frac{1}{d}TN^T)\textbf{X}_1 \equiv H\textbf{X}_1,<br>$$</p>
+<p>where</p>
+<p>$$<br>H &#x3D; R + \frac{1}{d}TN^T \in \mathbb{R}^{3\times 3}<br>$$</p>
+<p>is called a <code>homography matrix</code>. Inserting the 2D coordinates, we get:<br>$$</p>
+<p>\lambda_2 \textbf{x}_2 &#x3D; H\lambda_1\textbf{x}_1 \Leftrightarrow\textbf{x}_2\sim H\textbf{x}_1.<br>$$</p>
+<p>where $\sim$ means equality up to scaling. This expression is called a <code>planar homography</code>. $H$ depends on camera and plane parameters.</p>
+<h2 id="5-19-From-Point-Pairs-to-Homography"><a href="#5-19-From-Point-Pairs-to-Homography" class="headerlink" title="5.19 From Point Pairs to Homography"></a>5.19 From Point Pairs to Homography</h2><p>For a pair of corresponding 2D points we therefore have:</p>
+<p>$$<br>\lambda_2 \textbf{x}_2 &#x3D; H\lambda_1 \textbf{x}_1.<br>$$</p>
+<p>By multiplying with $\widehat{\textbf{x}_2}$ we can eliminate $\lambda_2$ and obtain:</p>
+<p>$$<br>\widehat{\textbf{x}_2}H\textbf{x}_1 &#x3D; 0<br>$$</p>
+<p>This equation is called the <code>planar epipolar constraint</code> or <code>planar homography constraint</code>.</p>
+<p>Again, we can cast this equation into the form:</p>
+<p>$$<br>\textbf{a}^TH^s &#x3D; \vec{0} \in \mathbb{R}^{3\times 1}<br>$$</p>
+<p>where we have stacked the elements of $H$ into a vector:</p>
+<p>$$<br>H^s &#x3D; (H_{11}, H_{21}, …, H_{33})\in \mathbb{R}^9,<br>$$</p>
+<p>and introduced the matrix:</p>
+<p>$$<br>\textbf{a} \equiv \textbf{x}_1 \otimes \widehat{\textbf{x}_2} \in \mathbb{R}^{9\times 3}<br>$$</p>
+<p>(原因在于$\widehat{\textbf{x}_2}$是一个$3\times 3$的矩阵，所以得到的克罗内克乘积是一个$9\times 3$的矩阵，而不是$9\times 1$的矩阵。所以$\textbf{a}^TH^s &#x3D; \vec{0} \in \mathbb{R}^{3\times 1}$会提供给我们3个方程，但不幸的是其中只有两个方程独立，即rank&#x3D;2,因为反对称矩阵$\widehat{\textbf{x}_2}$的性质不好，其秩为2.这样下来，一对点就可以提供两个方程，此前为了估计本质矩阵，general的情况下我们需要8对点，那么现在估计单应矩阵时，general情况下我们就只需要4对点了。)</p>
+<h2 id="5-20-The-Four-Point-Algorithm"><a href="#5-20-The-Four-Point-Algorithm" class="headerlink" title="5.20 The Four Point Algorithm"></a>5.20 The Four Point Algorithm</h2><p>Let us now assume we have $n\geq 4$ pairs of corresponding 2D points ${\textbf{x}_1^j, \textbf{x}_2^j}, j&#x3D;1,…,n$ in the two images. Each point pair induces a matrix $\textbf{a}^j$, we integrate these into a larger matrix:</p>
+<p>$$<br>\chi \equiv (\textbf{a}^1, …, \textbf{a}^n)^T \in \mathbb{R}^{3n\times 9},<br>$$</p>
+<p>and obtain the system:</p>
+<p>$$<br>\chi H^s &#x3D; \vec{0} \in \mathbb{R}^{3n \times 1}<br>$$</p>
+<p>As in the case of the essential matrix, <code>the homography matrix can be estimated up to a scale factor</code>.<br>This gives rise to the <code>four point algorithm</code>:</p>
+<ul>
+<li>For the point pairs, compute the matrix $\chi$.</li>
+<li>Compute a solution $H^s$ for the above equation by singular value decomposition of $\chi$.</li>
+<li>Extract the motion parameters from the homography matrix $H &#x3D; R + \frac{1}{d}TN^T$.(这一步中从单应矩阵$H$中恢复相机的运动$R,T$比较麻烦，但是有方法的。)</li>
+</ul>
+<h2 id="5-21-General-Comment"><a href="#5-21-General-Comment" class="headerlink" title="5.21 General Comment"></a>5.21 General Comment</h2><p>Clearly, the derivation of the <code>four-point algorithm</code> is in close analogy to that of the <code>eight-point algorithm</code>.</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Wastoon/myPicGo/img/948709-20200401140923626-1417471115.png"><br>Rather than estimating the <code>essential matrix</code> $E$ one estimates the <code>homography matrix </code> $H$ to derive $R$ and $T$. In the four-point algorithm, the <code>homography matrix is decomposed into </code> $R, N$ and $T&#x2F;d$. In other words, one can reconstruct the normal of the plane, but the translation is only obtained in units of the offset $d$ of the plane and the origin.</p>
+<p>The <code>3D structure of the points</code> can then be computed in the same manner as before.</p>
+<p>Since one uses the strong constraint that all points lie in a plane, the <code>four-point algorithm only requires four correspondences</code>.</p>
+<p>There exist <code>numerous relations</code> between the essential matrix $E&#x3D;\hat{T}R$ and the corresponding homography matrix $H&#x3D;R+Tu^T$ with some $u\in \mathbb{R}^3$, in particular:</p>
+<p>$$<br>E &#x3D; \hat{T}H, \quad H^TE + E^TH &#x3D; 0.<br>$$</p>
+<h2 id="5-22-The-Case-of-an-Uncalibrated-Camera"><a href="#5-22-The-Case-of-an-Uncalibrated-Camera" class="headerlink" title="5.22 The Case of an Uncalibrated Camera"></a>5.22 The Case of an Uncalibrated Camera</h2><p>The reconstruction algorithms introduced above all assume that the camera is calibrated (K&#x3D;1). The general transformation from a 3D point to the image is given by:</p>
+<p>$$<br>\lambda\textbf{x}’ &#x3D; K\Pi_0 g\textbf{X} &#x3D; (KR, KT)\textbf{X},<br>$$</p>
+<p>with the <code>intrinsic parameter matrix</code> or <code>calibration matrix</code>:</p>
+<p>$$<br>K &#x3D; \left(\begin{matrix}<br>    fs_x &amp;s_\theta &amp; o_x\\<br>    0    &amp;fs_y     &amp; o_y\\<br>    0    &amp;0        &amp;1<br>\end{matrix}\right) \in \mathbb{R}^{3\times 3}.<br>$$</p>
+<p>The calibration matrix maps metric coordinates into image (pixel) coordinates, using the focal length $f$, the optical center $o_x, o_y$, the pixel size $s_x, s_y$ and a skew factor $s_\theta$. If these parameters are known then one can simply <code>transform the pixel coordinates</code> $\textbf{x}’$ <code>to normalized coordinates</code> $\textbf{x} &#x3D; K^{-1}\textbf{x}’$ to obtain the representation used in the previous sections. This amounts to centering the coordinates with respect to the optical center etc. </p>
+<h2 id="5-23-The-Fundamental-Matrix"><a href="#5-23-The-Fundamental-Matrix" class="headerlink" title="5.23 The Fundamental Matrix"></a>5.23 The Fundamental Matrix</h2><p>If the camera parameter $K$ cannot be estimated in a calibration procedure beforehand, then one has to deal with <code>reconstruction from uncalibrated views</code>.</p>
+<p>By transforming all image coordinates $\textbf{x}’$ with the inverse calibration matrix $K^{-1}$ into metric coordinates $\textbf{x}$, we obtain the <code>epipolar constraint for uncalibrated cameras</code>:</p>
+<p>$$<br>\textbf{x}_2^T\hat{T}R\textbf{x}_1 &#x3D; 0\Leftrightarrow \textbf{x}_2^{‘T}K^{-T}\hat{T}RK^{-1}\textbf{x}_1^{‘} &#x3D; 0<br>$$</p>
+<p>(推广也比较直观，坐标$x_1, x_2$是在归一化坐标平面中，而坐标$x’_1, x’_2$是在真实的焦平面处，实际中将世界坐标系中的点转换为图像平面的过程中时，归一化坐标平面是在真实的焦平面之前的，故有$x‘_1 &#x3D; Kx_1, x’_2 &#x3D; Kx_2$,即$x_1 &#x3D; K^{-1}x’_1, x_2&#x3D;K^{-1}x’_2$, 代入到归一化平面中的对极约束中我们就得到了基础矩阵版本的对极约束。)<br>which can be written as </p>
+<p>$$<br>\textbf{x}_2^{‘T}F\textbf{x’}_1 &#x3D; 0,<br>$$</p>
+<p>with the <code>fundamental matrix</code> defined as:<br>$$<br>F \equiv K^{-T}\hat{T}RK^{-1} &#x3D; K^{-T}EK^{-1}.<br>$$</p>
+<p>Since the invertible matrix $K$ does not affect the rank of this matrix, we know that $F$ has an SVD $F&#x3D;U\Sigma V^T$ with $\Sigma &#x3D; diag(\sigma_1, \sigma_2, 0)$. In fact, <code>any matrix of rank 2 can be a fundamental matrix</code>.</p>
+<h2 id="5-24-Limitations-完全从基础矩阵中恢复出相机运动R-T较难实施"><a href="#5-24-Limitations-完全从基础矩阵中恢复出相机运动R-T较难实施" class="headerlink" title="5.24 Limitations (完全从基础矩阵中恢复出相机运动R,T较难实施)"></a>5.24 Limitations (完全从基础矩阵中恢复出相机运动R,T较难实施)</h2><p>While it is straight-forward to extend the eight-point algorithm, such that one can extract a <code>fundamental matrix</code> from a set of corresponding image points, it is less straight forward how to proceed from there.</p>
+<p>Firstly, one cannot impose a strong constraint on the specific structure of the fundamental matrix (apart from the fact that the last singular value is zero).</p>
+<p>Secondly, for a given fundamental matrix $F$, there does not exist a finite number of decompositions into extrinsic parameters $R, T$ and intrinsic parameters $K$ (even apart from the global scale factor).</p>
+<p>As a consequence, one can only determine so-called <code>projective reconstructions</code>, i.e. reconstructions of geometry and camera position which are defined up to a so-called projective transformation.</p>
+<p>As a solution, one typically choses a <code>canonical reconstruction</code> from the family of possible reconstructions.</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">KMnO4</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://wastoon.github.io/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%94%EF%BC%89/">https://wastoon.github.io/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%94%EF%BC%89/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://wastoon.github.io" target="_blank">KMnO4的行云小扎</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/">计算机视觉</a><a class="post-meta__tags" href="/tags/SFM/">SFM</a></div><div class="post_share"><div class="social-share" data-image="/img/MVG-5-cover.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button button--animated"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.png" target="_blank"><img class="post-qr-code-img" src="/img/wechat.png" alt="wechat"/></a><div class="post-qr-code-desc">wechat</div></li><li class="reward-item"><a href="/img/alipay.png" target="_blank"><img class="post-qr-code-img" src="/img/alipay.png" alt="alipay"/></a><div class="post-qr-code-desc">alipay</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%9B%9B%EF%BC%89/"><img class="next-cover" src="/img/MVG-4-cover.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">多视图几何（四）</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/02/21/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%80%EF%BC%89/" title="MVG-多视图几何（一）"><img class="cover" src="/img/MVG-1-cover.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-21</div><div class="title">MVG-多视图几何（一）</div></div></a></div><div><a href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%89%EF%BC%89/" title="多视图几何（三）"><img class="cover" src="/img/MVG-3-cover.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-23</div><div class="title">多视图几何（三）</div></div></a></div><div><a href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%8C%EF%BC%89/" title="多视图几何（二）"><img class="cover" src="/img/MVG-2-cover.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-23</div><div class="title">多视图几何（二）</div></div></a></div><div><a href="/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%9B%9B%EF%BC%89/" title="多视图几何（四）"><img class="cover" src="/img/MVG-4-cover.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-28</div><div class="title">多视图几何（四）</div></div></a></div><div><a href="/2021/11/21/Vison-Transformer%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0%E8%A7%A3%E8%AF%BB%EF%BC%88%E4%B8%80%EF%BC%89/" title="Vison Transformer系列文章解读（一）"><img class="cover" src="/img/DETR.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2021-11-21</div><div class="title">Vison Transformer系列文章解读（一）</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">KMnO4</div><div class="author-info__description">西安交通大学硕士（CV，3D人体姿态估计，动作生成）</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Wastoon"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/Wastoon" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="/mengrongye@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">Everything is the meaning of life.<div class="twopeople"><div class="twopeople"><div class="container"style="height:200px;"><canvas class="illo"width="800"height="800"style="max-width: 200px; max-height: 200px; touch-action: none; width: 640px; height: 640px;"></canvas></div><script src="https://cdn.jsdelivr.net/gh/Justlovesmile/CDN/js/twopeople1.js"></script><script src="https://cdn.jsdelivr.net/gh/Justlovesmile/CDN/js/zdog.dist.js"></script><script id="rendered-js"src="https://cdn.jsdelivr.net/gh/Justlovesmile/CDN/js/twopeople.js"></script><style>.twopeople{margin:0;align-items:center;justify-content:center;text-align:center}canvas{display:block;margin:0 auto;cursor:move}</style></div></div></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Chapter5-Reconstruction-from-Two-Views"><span class="toc-number">1.</span> <span class="toc-text">Chapter5 Reconstruction from Two Views</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#5-1-Problem-Formulation"><span class="toc-number">1.1.</span> <span class="toc-text">5.1. Problem Formulation</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-2-The-Reconstruction-Problem"><span class="toc-number">1.2.</span> <span class="toc-text">5.2 The Reconstruction Problem</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-3-Epipolar-Geometry-Some-Notation"><span class="toc-number">1.3.</span> <span class="toc-text">5.3 Epipolar Geometry: Some Notation</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-4-The-Epipolar-Constraint"><span class="toc-number">1.4.</span> <span class="toc-text">5.4 The Epipolar Constraint</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-5-Properties-of-the-Essential-Matrix-E"><span class="toc-number">1.5.</span> <span class="toc-text">5.5 Properties of the Essential Matrix E</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-6-A-Basic-Reconstruction-Algorithm"><span class="toc-number">1.6.</span> <span class="toc-text">5.6 A Basic Reconstruction Algorithm</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-7-The-Eight-Point-Linear-Algorithm"><span class="toc-number">1.7.</span> <span class="toc-text">5.7 The Eight-Point Linear Algorithm</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-8-Projection-onto-Essential-Space"><span class="toc-number">1.8.</span> <span class="toc-text">5.8 Projection onto Essential Space</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-9-Eight-Point-Algorithm-Longuet-Higgins-1981"><span class="toc-number">1.9.</span> <span class="toc-text">5.9 Eight Point Algorithm (Longuet-Higgins 1981)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-10-Do-we-need-Eight-Points-%E7%94%A85%E7%82%B9%E6%B3%95%E4%B9%9F%E5%8F%AF%E6%B1%82%E8%A7%A3"><span class="toc-number">1.10.</span> <span class="toc-text">5.10 Do we need Eight Points? (用5点法也可求解)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-11-Limitations-and-Further-Extensions"><span class="toc-number">1.11.</span> <span class="toc-text">5.11 Limitations and Further Extensions</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-12-Structure-Reconstruction"><span class="toc-number">1.12.</span> <span class="toc-text">5.12 Structure Reconstruction</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-13-Example"><span class="toc-number">1.13.</span> <span class="toc-text">5.13 Example</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-14-Optimality-in-Noisy-Real-World-Conditions"><span class="toc-number">1.14.</span> <span class="toc-text">5.14 Optimality in Noisy Real World Conditions</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-15-Nonlinear-Optimization-Methods"><span class="toc-number">1.15.</span> <span class="toc-text">5.15 Nonlinear Optimization Methods</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-16-Bundle-Adjustment"><span class="toc-number">1.16.</span> <span class="toc-text">5.16 Bundle Adjustment</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-17-Degenerate-Configurations"><span class="toc-number">1.17.</span> <span class="toc-text">5.17 Degenerate Configurations</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-18-Planar-Homographies"><span class="toc-number">1.18.</span> <span class="toc-text">5.18 Planar Homographies</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-19-From-Point-Pairs-to-Homography"><span class="toc-number">1.19.</span> <span class="toc-text">5.19 From Point Pairs to Homography</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-20-The-Four-Point-Algorithm"><span class="toc-number">1.20.</span> <span class="toc-text">5.20 The Four Point Algorithm</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-21-General-Comment"><span class="toc-number">1.21.</span> <span class="toc-text">5.21 General Comment</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-22-The-Case-of-an-Uncalibrated-Camera"><span class="toc-number">1.22.</span> <span class="toc-text">5.22 The Case of an Uncalibrated Camera</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-23-The-Fundamental-Matrix"><span class="toc-number">1.23.</span> <span class="toc-text">5.23 The Fundamental Matrix</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-24-Limitations-%E5%AE%8C%E5%85%A8%E4%BB%8E%E5%9F%BA%E7%A1%80%E7%9F%A9%E9%98%B5%E4%B8%AD%E6%81%A2%E5%A4%8D%E5%87%BA%E7%9B%B8%E6%9C%BA%E8%BF%90%E5%8A%A8R-T%E8%BE%83%E9%9A%BE%E5%AE%9E%E6%96%BD"><span class="toc-number">1.24.</span> <span class="toc-text">5.24 Limitations (完全从基础矩阵中恢复出相机运动R,T较难实施)</span></a></li></ol></li></ol></div></div><div class="card-widget card-weibo"><div class="card-content"><div class="item-headline"><i class="fab fa-weibo"></i><span>微博热搜</span></div><div id="weibo-container" style="width: 100%; height: 150px;font-size: 95%;"></div></div></div><script defer="defer" data-pjax="data-pjax" src="/js/card_weibo.js"></script><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%94%EF%BC%89/" title="多视图几何（五）"><img src="/img/MVG-5-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="多视图几何（五）"/></a><div class="content"><a class="title" href="/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%94%EF%BC%89/" title="多视图几何（五）">多视图几何（五）</a><time datetime="2022-02-28T07:02:52.000Z" title="发表于 2022-02-28 15:02:52">2022-02-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%9B%9B%EF%BC%89/" title="多视图几何（四）"><img src="/img/MVG-4-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="多视图几何（四）"/></a><div class="content"><a class="title" href="/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%9B%9B%EF%BC%89/" title="多视图几何（四）">多视图几何（四）</a><time datetime="2022-02-28T06:43:44.000Z" title="发表于 2022-02-28 14:43:44">2022-02-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%89%EF%BC%89/" title="多视图几何（三）"><img src="/img/MVG-3-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="多视图几何（三）"/></a><div class="content"><a class="title" href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%89%EF%BC%89/" title="多视图几何（三）">多视图几何（三）</a><time datetime="2022-02-23T11:44:57.000Z" title="发表于 2022-02-23 19:44:57">2022-02-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%8C%EF%BC%89/" title="多视图几何（二）"><img src="/img/MVG-2-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="多视图几何（二）"/></a><div class="content"><a class="title" href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%8C%EF%BC%89/" title="多视图几何（二）">多视图几何（二）</a><time datetime="2022-02-23T10:59:40.000Z" title="发表于 2022-02-23 18:59:40">2022-02-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/02/21/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%80%EF%BC%89/" title="MVG-多视图几何（一）"><img src="/img/MVG-1-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MVG-多视图几何（一）"/></a><div class="content"><a class="title" href="/2022/02/21/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%80%EF%BC%89/" title="MVG-多视图几何（一）">MVG-多视图几何（一）</a><time datetime="2022-02-21T10:48:34.000Z" title="发表于 2022-02-21 18:48:34">2022-02-21</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/MVG-5-cover.png')"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By KMnO4</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font-plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font-minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"><script>if (!window.MathJax) {
+  window.MathJax = {
+    tex: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"]],
+      tags: 'ams'
+    },
+    chtml: {
+      scale: 1.2
+    },
+    options: {
+      renderActions: {
+        findScript: [10, doc => {
+          for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+            const display = !!node.type.match(/; *mode=display/)
+            const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+            const text = document.createTextNode('')
+            node.parentNode.replaceChild(text, node)
+            math.start = {node: text, delim: '', n: 0}
+            math.end = {node: text, delim: '', n: 0}
+            doc.math.push(math)
+          }
+        }, ''],
+        insertScript: [200, () => {
+          document.querySelectorAll('mjx-container:not\([display]\)').forEach(node => {
+            const target = node.parentNode
+            if (target.nodeName.toLowerCase() === 'li') {
+              target.parentNode.classList.add('has-jax')
+            } else {
+              target.classList.add('has-jax')
+            }
+          });
+        }, '', false]
+      }
+    }
+  }
+  
+  const script = document.createElement('script')
+  script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js'
+  script.id = 'MathJax-script'
+  script.async = true
+  document.head.appendChild(script)
+} else {
+  MathJax.startup.document.state(0)
+  MathJax.texReset()
+  MathJax.typeset()
+}</script><script>function addGitalkSource () {
+  const ele = document.createElement('link')
+  ele.rel = 'stylesheet'
+  ele.href= 'https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css'
+  document.getElementsByTagName('head')[0].appendChild(ele)
+}
+
+function loadGitalk () {
+  function initGitalk () {
+    var gitalk = new Gitalk(Object.assign({
+      clientID: '60cf579829afb2b2cdf9',
+      clientSecret: '991dfac32f5e2bd0470bd4b8f5b8a2ef54e9b164',
+      repo: 'Wastoon.github.io',
+      owner: 'Wastoon',
+      admin: ['Wastoon'],
+      id: '4e3e9231dd4e2022a9856e4182b0deef',
+      language: 'zh-CN',
+      perPage: 10,
+      distractionFreeMode: false,
+      pagerDirection: 'last',
+      createIssueManually: true,
+      updateCountCallback: commentCount
+    },false))
+
+    gitalk.render('gitalk-container')
+  }
+
+  if (typeof Gitalk === 'function') initGitalk()
+  else {
+    addGitalkSource()
+    getScript('https://cdn.jsdelivr.net/npm/gitalk@latest/dist/gitalk.min.js').then(initGitalk)
+  }
+}
+
+function commentCount(n){
+  let isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+  if (isCommentCount) {
+    isCommentCount.innerHTML= n
+  }
+}
+
+if ('Gitalk' === 'Gitalk' || !true) {
+  if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+  else loadGitalk()
+} else {
+  function loadOtherComment () {
+    loadGitalk()
+  }
+}</script></div><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="true"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-show-text.min.js" data-mobile="false" data-text="I,Miss,You" data-fontsize="15px" data-random="false" async="async"></script><script>((window.gitter = {}).chat = {}).options = {
+  disableDefaultChat: true,
+};
+document.addEventListener('gitter-sidecar-ready', (e) => {
+  const GitterChat = e.detail.Chat
+  let chat
+
+  function initGitter () {
+    chat = new GitterChat({
+      room: 'OMGsitetalk/community',
+      activationElement: '#chat_btn'
+    });
+  }
+
+  initGitter()
+
+  if (false) {
+    document.addEventListener('pjax:complete', () => {
+      chat.destroy()
+      initGitter()
+    })
+  }
+
+})</script><script src="https://sidecar.gitter.im/dist/sidecar.v1.js" async="async" defer="defer"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_clock_injector_config(){
+    var parent_div_git = document.getElementsByClassName('sticky_layout')[0];
+    var item_html = '<div class="card-widget card-clock"><div class="card-glass"><div class="card-background"><div class="card-content"><div id="hexo_electric_clock"><img class="entered loading" id="card-clock-loading" src="https://cdn.jsdelivr.net/gh/tzy13755126023/BLOG_SOURCE/theme_f/loading.gif" style="height: 120px; width: 100%;" data-ll-status="loading"/></div></div></div></div></div>';
+    console.log('已挂载butterfly_clock')
+    parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+    }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var flag = 0;
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_clock_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_clock_injector_config();
+  }
+  </script><script src="https://pv.sohu.com/cityjson?ie=utf-8"></script><script data-pjax src="https://cdn.jsdelivr.net/npm/hexo-butterfly-clock/lib/clock.min.js"></script><script async src="//at.alicdn.com/t/font_2032782_8d5kxvn09md.js"></script><script data-pjax src="https://cdn.jsdelivr.net/npm/hexo-filter-gitcalendar/lib/gitcalendar.js"></script><script data-pjax>
+                        function gitcalendar_injector_config(){
+                          var parent_div_git = document.getElementById('recent-posts');
+                          var item_html = '<div class="recent-post-item" style="width:100%;height:auto;padding:10px;"><style>#git_container{min-height: 280px}@media screen and (max-width:650px) {#git_container{min-height: 0px}}</style><div id="git_loading" style="width:10%;height:100%;margin:0 auto;display: block;"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 50 50" style="enable-background:new 0 0 50 50" xml:space="preserve"><path fill="#d0d0d0" d="M25.251,6.461c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615V6.461z" transform="rotate(275.098 25 25)"><animatetransform attributeType="xml" attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="0.6s" repeatCount="indefinite"></animatetransform></path></svg><style>#git_container{display: none;}</style></div><div id="git_container"></div></div>';
+                          parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+                          console.log('已挂载gitcalendar')
+                          }
+
+                        if( document.getElementById('recent-posts') && (location.pathname ==='/'|| '/' ==='all')){
+                            gitcalendar_injector_config()
+                            GitCalendarInit("https://gitcalendar.akilar.top/api?Wastoon",['#ebedf0', '#fdcdec', '#fc9bd9', '#fa6ac5', '#f838b2', '#f5089f', '#c4067e', '#92055e', '#540336', '#48022f', '#30021f'],'Wastoon')
+                        }
+                      </script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>
