@@ -1,0 +1,549 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>多视图几何（六） | KMnO4的行云小扎</title><meta name="keywords" content="计算机视觉,SFM"><meta name="author" content="KMnO4"><meta name="copyright" content="KMnO4"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Chapter6 Reconstruction from Multiple Views6.1 Multiple View GeometryIn this section, we deal with the problem of 3D reconstruction given multiple views of a static scene, either obtained simultaneous">
+<meta property="og:type" content="article">
+<meta property="og:title" content="多视图几何（六）">
+<meta property="og:url" content="https://wastoon.github.io/2022/03/09/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%85%AD%EF%BC%89/index.html">
+<meta property="og:site_name" content="KMnO4的行云小扎">
+<meta property="og:description" content="Chapter6 Reconstruction from Multiple Views6.1 Multiple View GeometryIn this section, we deal with the problem of 3D reconstruction given multiple views of a static scene, either obtained simultaneous">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://wastoon.github.io/img/MVG-5-cover.png">
+<meta property="article:published_time" content="2022-03-09T08:15:24.000Z">
+<meta property="article:modified_time" content="2022-03-09T09:34:25.668Z">
+<meta property="article:author" content="KMnO4">
+<meta property="article:tag" content="计算机视觉">
+<meta property="article:tag" content="SFM">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://wastoon.github.io/img/MVG-5-cover.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://wastoon.github.io/2022/03/09/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%85%AD%EF%BC%89/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><meta/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '多视图几何（六）',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-03-09 17:34:25'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const fontSizeVal = saveToLocal.get('global-font-size')
+    if (fontSizeVal !== undefined) {
+      document.documentElement.style.setProperty('--global-font-size', fontSizeVal + 'px')
+    }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-butterfly-clock/lib/clock.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/l-lin/font-awesome-animation/dist/font-awesome-animation.min.css" media="defer" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-butterfly-tag-plugins-plus@latest/lib/tag_plugins.min.css" media="defer" onload="this.media='all'"><script async src="https://cdn.jsdelivr.net/npm/hexo-butterfly-tag-plugins-plus@latest/lib/carousel-touch.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-filter-gitcalendar/lib/gitcalendar.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/icon.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">9</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 网站统计</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 自留地</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 吉他谱</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> Movie</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 嗑盐&amp;摸鱼</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 文献</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 经典开源项目</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 个人项目</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/MVG-5-cover.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">KMnO4的行云小扎</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 网站统计</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 自留地</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 吉他谱</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> Movie</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 嗑盐&amp;摸鱼</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 文献</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 经典开源项目</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 个人项目</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">多视图几何（六）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-03-09T08:15:24.000Z" title="发表于 2022-03-09 16:15:24">2022-03-09</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-03-09T09:34:25.668Z" title="更新于 2022-03-09 17:34:25">2022-03-09</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/">计算机视觉</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/SFM/">SFM</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">6.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>38分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="多视图几何（六）"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="Chapter6-Reconstruction-from-Multiple-Views"><a href="#Chapter6-Reconstruction-from-Multiple-Views" class="headerlink" title="Chapter6 Reconstruction from Multiple Views"></a>Chapter6 Reconstruction from Multiple Views</h1><h2 id="6-1-Multiple-View-Geometry"><a href="#6-1-Multiple-View-Geometry" class="headerlink" title="6.1 Multiple View Geometry"></a>6.1 Multiple View Geometry</h2><p>In this section, we deal with the problem of 3D reconstruction given <code>multiple</code> views of a static scene, either obtained simultaneously, or sequentially from a moving camera.<br>The key idea is that the three-view scenario allows to obtain more measurements to infer the same number of 3D coordinates. For example, given two views of a single 3D point, we have four measurements (x- and y-coordinate in each view), while the three-view case provides 6 measurements per point correspondence. As a consequence, the estimation of motion and structure will generally be more constrained when reverting to additional views.<br>The three-view case has traditionally been addressed by the so-called <code>trifocal tensor</code> [Hartley ’95, Vieville ’93] which generalizes the fundamental matrix. This tensor – as the fundamental matrix – does not depend on the scene structure but rather on the inter-frame camera motion. It captures a <code>trilinear relationship</code> between three views of the same 3D point or line [Liu, Huang ’86, Spetsakis, Aloimonos ’87].</p>
+<h2 id="6-2-Trifocal-Tensor-versus-Multiview-Matrices"><a href="#6-2-Trifocal-Tensor-versus-Multiview-Matrices" class="headerlink" title="6.2 Trifocal Tensor versus Multiview Matrices"></a>6.2 Trifocal Tensor versus Multiview Matrices</h2><p>Traditionally the trilinear relations were captured by generalizing the concept of the Fundamental Matrix to that of a Trifocal Tensor. It was developed among others by [Liu and Huang ’86], [Spetsakis, Aloimonos ’87]. The use of tensors was promoted by [Vieville ’93] and [Hartley ’95]. Bilinear, trilinear and quadrilinear constraints were formulated in [Triggs ’95]. This line of work is summarized in the books: <code>Faugeras and Luong, “The Geometry of Multiple Views”, 2001</code> and <code>Hartley and Zisserman, “Multiple View Geometry”, 2001, 2003</code>.<br>In the following, however, we stick with a matrix notation for the multiview scenario. This approach makes use of matrices and rank constraints on these matrices to impose the constraints from multiple views. Such rank constraints were used by many authors, among others in [Triggs ’95] and in [Heyden, Åström ’97]. This line of work is summarized in the book <code>Ma, Soatto, Kosecka, Sastry, “An Invitation to 3D Vision”, 2004</code>.</p>
+<h2 id="6-3-Preimage-from-Multiple-Views"><a href="#6-3-Preimage-from-Multiple-Views" class="headerlink" title="6.3 Preimage from Multiple Views"></a>6.3 Preimage from Multiple Views</h2><p>A <code>preimage of multiple images</code> of a point or a line is the (largest) set of 3D points that gives rise to the same set of multiple images of the point or the line.<br>For example, given the two images $\ell_1$ and $\ell_2$ of a line $L$, the preimage of these two images is the intersection of the planes $P_1$ and $P_2$, i.e. exactly the 3D line $L &#x3D; P_1\cap P_2$.</p>
+<p>In general, the preimage of multiple images of points and lines can be <code>defined by the intersection</code>:</p>
+<p>$$<br>preimage(\textbf{x}_1,…,\textbf{x}_m)&#x3D;preimage(\textbf{x}_1)\cap …\cap preimage(\textbf{x}_m),\<br>preimage(\ell_1,…,\ell_m)&#x3D;preimage(\ell_1)\cap …\cap preimage(\ell_m).\<br>$$</p>
+<p>The above definition allows us to compute preimages for any set of image points or lines. The preimage of multiple image lines, for example, can be either an empty set, a point, a line or a plane, depending on whether or not they come from the same line in space.</p>
+<h2 id="6-4-Preimage-and-Coimage-of-Points-and-Lines"><a href="#6-4-Preimage-and-Coimage-of-Points-and-Lines" class="headerlink" title="6.4 Preimage and Coimage of Points and Lines"></a>6.4 Preimage and Coimage of Points and Lines</h2><p><img src="https://cdn.jsdelivr.net/gh/Wastoon/myPicGo/img/6beddc3b5063d73f79a8e003cbb2f994.png"></p>
+<ul>
+<li>Preimages $P_1$ and $P_2$ of the image lines should intersect in the line $L$.</li>
+<li>Preimages of the two image points $\textbf{x}_1$ and $\textbf{x}_2$ should intersect in the point $p$.</li>
+<li>Normals $\ell_1$ and $\ell_2$ define the coimages of the line $L$.</li>
+</ul>
+<h2 id="6-5-Preimage-and-Coimage-of-Points-and-Lines"><a href="#6-5-Preimage-and-Coimage-of-Points-and-Lines" class="headerlink" title="6.5 Preimage and Coimage of Points and Lines"></a>6.5 Preimage and Coimage of Points and Lines</h2><p>For a <code>moving camera at time </code>$t$, let $\textbf{x}(t)$denote the image coordinates of a 3D point $\textbf{X}$ in homogeneous coordinates:</p>
+<p>$$<br>\lambda(t)\textbf{x}(t) &#x3D; K(t)\Pi_0 g(t)\textbf{X},<br>$$</p>
+<p>where $\lambda (t)$ denotes the depth of the point, $K(t)$ denotes the intrinsic parameters, $\Pi_0$ the generic projection, and</p>
+<p>$$<br>g(t) &#x3D; \left(\begin{matrix}<br>    R(t) &amp;T(t)\\<br>    0 &amp; 1<br>\end{matrix} \right)\in SE(3),<br>$$</p>
+<p>denotes the rigid body motion at time $t$.</p>
+<p>Let us consider a <code>3D line</code> $L$ in <code>homogeneous coordinates</code>:</p>
+<p>$$<br>L &#x3D; \{\textbf{X} |\textbf{X}&#x3D;\textbf{X}_0 + \mu \textbf{V}, \mu \in \mathbb{R} \} \subset \mathbb{R}^4<br>$$</p>
+<p>where $\textbf{X}_0&#x3D;[X_0, Y_0, Z_0, 1]^T\in \mathbb{R}^4$ are the coordinates of the base point $p_0$ and $\textbf{V} &#x3D;[V_1, V_2, V_3, 0]^T \in \mathbb{R}^4$ is a nonzero vector indicating the line direction.</p>
+<p>The <code>preimage</code> of $L$ with respect to the image at time $t$ is a plane $P$ with normal $\ell(t)$, where $P&#x3D;span(\hat{\ell})$. The vector $\ell(t)$ is orthogonal to all points $\textbf{x}(t)$ of the line:</p>
+<p>$$<br>\ell (t)^T\textbf{x}(t) &#x3D; \ell(t)^TK(t)\Pi_0 g(t)\textbf{X} &#x3D;0.<br>$$</p>
+<p>Assume we are given a <code>set of </code> $m$ <code>images at times </code> $t_1, …, t_m$ where:</p>
+<p>$$<br>\lambda_i &#x3D; \lambda(t_i), \textbf{x}_i &#x3D; \textbf{x}(t_i), \quad \ell_i &#x3D; \ell(t_i), \Pi_i &#x3D; K(t_i)\Pi_0 g(t_i).<br>$$</p>
+<p>With this notation, we can relate the <code>i-th image of a point </code> $p$ to its world coordinates $\textbf{X}$:</p>
+<p>$$<br>\lambda_i \textbf{x}_i &#x3D; \Pi_i \textbf{X},<br>$$</p>
+<p>and the <code>i-th coimage of a line</code> $L$ to its world coordinates $(\textbf{X}_0, \textbf{V})$:</p>
+<p>$$<br>\ell _i^T\Pi_i\textbf{X}_0 &#x3D; \ell_i^T\Pi_i \textbf{V} &#x3D; 0.<br>$$</p>
+<h2 id="6-6-From-Preimages-to-Rank-Constraints"><a href="#6-6-From-Preimages-to-Rank-Constraints" class="headerlink" title="6.6 From Preimages to Rank Constraints"></a>6.6 From Preimages to Rank Constraints</h2><p>The above equations contain the 3D parameters of points and lines as unknowns. As in the two-view case, we wish to eliminate these unknowns so as to obtain relationships between the 2D projections and the camera parameters.<br>In the two-view case an elimination of the 3D coordinates lead to the epipolar constraint for the essential matrix E or (in the uncalibrated case) the fundamental matrix F. The 3D coordinates (depth values $\lambda_i$ associated with each point) could nsubsequently obtained from another constraint.<br>There exist different ways to eliminate the 3D parameters leading to different kinds of constraints which have been studied in Computer Vision.<br>A systematic elimination of these constraints will lead to a complete set of conditions.</p>
+<h2 id="6-7-Point-Features"><a href="#6-7-Point-Features" class="headerlink" title="6.7 Point Features"></a>6.7 Point Features</h2><p>Consider images of a 3D point $\textbf{X}$ seen in multiple views:</p>
+<p>$$<br>\mathcal{I}\vec{\lambda} \equiv \left(\begin{matrix}<br>    \textbf{x}_1 &amp; 0 &amp; \dots &amp; 0\\<br>    0          &amp;\textbf{x}_2 &amp; 0 &amp; 0\\<br>    \vdots     &amp;\vdots     &amp;\dots &amp;\vdots \\<br>    0          &amp;0          &amp;\dots &amp;\textbf{x}_m<br>\end{matrix}\right)<br>\left(\begin{matrix}<br>    \lambda_1\\<br>    \lambda_2\\<br>    \vdots   \\<br>    \lambda_m<br>\end{matrix}\right)&#x3D;<br>\left(\begin{matrix}<br>    \Pi_1\\<br>    \Pi_2\\<br>    \vdots   \\<br>    \Pi_m<br>\end{matrix}\right)\textbf{X} \equiv \Pi\textbf{X}.<br>$$</p>
+<p>which is of the form:</p>
+<p>$$<br>\mathcal{I}\vec{\lambda} &#x3D; \Pi \textbf{X},<br>$$</p>
+<p>where $m$ is the number of views, $\vec{\lambda}\in \mathbb{R}^m$ is the <code>depth scale vector</code> and $\Pi \in\mathbb{R}^{3m\times 4}$ the <code>multiple-view projection matrix</code> associated with the <code>image matrix</code> $\mathcal{I}\in \mathbb{R}^{3m\times m}$.</p>
+<p>(Note:我们有$\mathcal{I}\vec{\lambda}&#x3D;\Pi \textbf{X}$, 也就是$\Pi \textbf{X} - \mathcal{I}\vec{\lambda}&#x3D;0$，即为$( \Pi, \mathcal{I})(\textbf{X}, \vec{-\lambda})^T &#x3D; 0$,因此下文中要研究$N_p\equiv(\Pi, \mathcal{I})$的秩。)</p>
+<p>Every column of $\mathcal{I}$ lies in a four-dimensional space spanned by columns of the matrix $\Pi$. In order to have a solution to the above equation, the columns of $\mathcal{I}$ and $\Pi$ must therefore be linearly dependent. In other words, the matrix:</p>
+<p>$$<br>N_p \equiv (\Pi, \mathcal{I}) &#x3D; \left(<br>    \begin{matrix}<br>        \Pi_1   &amp;\textbf{x}_1  &amp;0   &amp;\dots   &amp;0 \\<br>        \Pi_2   &amp;0           &amp;\textbf{x}_2  &amp;0   &amp;0\\<br>        \vdots  &amp;\vdots      &amp;\vdots      &amp;\ddots  &amp;\vdots \\<br>        \Pi_m   &amp;0           &amp;0           &amp;\dots   &amp;\textbf{x}_m<br>    \end{matrix}\right) \in \mathbb{R}^{3m\times (m+4)}<br>$$</p>
+<p>must have a nontrivial right null space. For $m \geq 2$ (i.e. $3m\geq m+4$), full rank would be $m+4$. Linear dependence of columns therefore implies the <code>rank constraint</code>:</p>
+<p>$$<br>rank(N_p) \leq m+3.<br>$$</p>
+<p>In fact, the vector $u &#x3D; (\textbf{X}^T, -\vec{\lambda}^T)^T\in\mathbb{R}^{m+4}$ is the right null space, as $N_p u &#x3D; 0.$</p>
+<p>For a more compact formulation of the above rank constraint, we introduce the matrix:</p>
+<p>$$<br>\mathcal{I}^\perp \equiv \left(<br>    \begin{matrix}<br>        \widehat{\textbf{x}_1}    &amp;0         &amp;\dots           &amp;0\\<br>        0                       &amp;\widehat{\textbf{x}_2} &amp;\dots &amp;0\\<br>        \vdots                  &amp;\vdots               &amp;\ddots &amp;\vdots \\<br>        0                       &amp;0                    &amp;\dots  &amp;\widehat{\textbf{x}_m}<br>    \end{matrix}\right) \in \mathbb{R}^{3m\times 3m},<br>$$</p>
+<p>which has the property of “annihilating” $\mathcal{I}$:</p>
+<p>$$<br>\mathcal{I}^{\perp} \mathcal{I} &#x3D; 0,<br>$$</p>
+<p>we can premultiply the above equation to obtain:</p>
+<p>$$<br>\mathcal{I}^{\perp} \Pi \textbf{X} &#x3D; 0.<br>$$</p>
+<p>(Note:我们有$\mathcal{I}\vec{\lambda}&#x3D;\Pi \textbf{X}$, 两边同时左乘$\mathcal{I}^\perp就得到了上式$。)</p>
+<p>Thus the vector $\textbf{X}$ is in the null space of the matrix:</p>
+<p>$$<br>W_p \equiv \mathcal{I}^\perp \Pi  &#x3D; \left( \begin{matrix}<br>    \widehat{\textbf{x}_1}\Pi_1\\<br>    \widehat{\textbf{x}_2}\Pi_2\\<br>    \vdots \\<br>    \widehat{\textbf{x}_m}\Pi_m<br>\end{matrix}\right) \in \mathbb{R}^{3m\times 4}.<br>$$</p>
+<p>To have a nontrivial solution(非平凡解), we must have:</p>
+<p>$$<br>rank(W_p) \leq 3.<br>$$</p>
+<p>If all images $\textbf{x}_i$  are from a single 3D point $\textbf{X}$, then the matrix $W_p$ should only have a one-dimensional null space. Given $m$ images $\textbf{x}_i\in \mathbb{R}^3$ of a point $p$ with respect to $m$ camera frames $\Pi_i$, we must have the rank condition:</p>
+<p>$$<br>rank(W_p) &#x3D; rank(N_p)-m \leq 3.<br>$$<br>(Note: 如果秩等于4，则所求问题无解，只有零解。如果秩为3，则所求问题有唯一非平凡解，如果秩小于3，则所求问题的解不唯一。)</p>
+<h2 id="6-8-Line-Features"><a href="#6-8-Line-Features" class="headerlink" title="6.8 Line Features"></a>6.8 Line Features</h2><p>We can derive a similar rank constraint for lines. As we saw above, for the coimages $\ell_i, i&#x3D;1,…,m$ of a line $L$ spanned by a base $\textbf{X}_0$ and a direction $\textbf{V}$ we have: ($\ell_i$ 是preimage的法向量)</p>
+<p>$$<br>\ell_i^\top \Pi_i \textbf{X}_0 &#x3D; \ell^\top_i\Pi_i\textbf{V} &#x3D; 0.<br>$$</p>
+<p>Therefor the matrix:</p>
+<p>$$<br>W_l \equiv \left(\begin{matrix}<br>    \ell^\top_1\Pi_1\\<br>    \ell^\top_2\Pi_2\\<br>    \vdots \\<br>    \ell^\top_m\Pi_m<br>\end{matrix}\right) \in \mathbb{R}^{m\times 4}<br>$$</p>
+<p>must satisfy the rank constraint:</p>
+<p>$$<br>rank(W_l) \leq 2,<br>$$</p>
+<p>since the null space of $W_l$ contains the two vectors $\textbf{X}_0$ and $\textbf{V}$.</p>
+<h2 id="6-9-Rank-Consraints-Geometric-Interpretation"><a href="#6-9-Rank-Consraints-Geometric-Interpretation" class="headerlink" title="6.9 Rank Consraints: Geometric Interpretation"></a>6.9 Rank Consraints: Geometric Interpretation</h2><p>In the case of a <code>point</code> $\textbf{X}$, wee had the equation:</p>
+<p>$$<br>W_p\textbf{X} &#x3D;0, \quad with \ W_p&#x3D;\left(\begin{matrix}<br>    \widehat{\textbf{x}_1}\Pi_1 \\<br>    \widehat{\textbf{x}_2}\Pi_2 \\<br>    \vdots \<br>    \widehat{\textbf{x}_m}\Pi_m<br>\end{matrix}\right) \in \mathbb{R}^{3m \times 4}.<br>$$</p>
+<p>Since all matrices $\hat{\textbf{x}}_i$ have rank 2, the number of independent rows in $W_p$ is at most $2m$. These rows define a set of $2m$ planes.</p>
+<p>(Note: $\hat{\textbf{x}}_i$ 是$\textbf{x}_i$的反对称矩阵，且因为其cross的性质，使得$\hat{\textbf{x}_i}\textbf{x}_i&#x3D;0$,因此可以看作是秩为2的反对称矩阵中含了两个法向量，与这这两个法向量对应的垂直平面中有点$\textbf{x}_i$，因此一个反对称矩阵中就定义了2个平面，那么m个views下总共就包含了$2m$个平面。)</p>
+<p>Since $W_p\textbf{X}&#x3D;0$, the point $\textbf{X}$ is in the intersection of all these planes. In order for the $2m$ planes to have a unique intersection, we need to have $rank(W_p)&#x3D;3$.</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Wastoon/myPicGo/img/a6ddd6194d4aada66c9a0970090c8254.png"><br>The rows of the matrix $W_p$ correspond to the normal vectors of four planes. The (nontrivial) rank constraint states that these four planes have to intersect in a single point.</p>
+<p>In the case of a line $L$ in two views, we have the equation:</p>
+<p>$$<br>rank(W_l)\leq 2, \quad \ W_l &#x3D; \left(<br>    \begin{matrix}<br>        \ell^\top_1\Pi_1 \\<br>        \ell^\top_2\Pi_2<br>    \end{matrix}\right) \in \mathbb{R}^{2\times 4}.<br>$$</p>
+<p>Clearly, we already have $rank(W_l)\leq 2$, so there is no intrinsic constraint on two images of a line: The preimage o two image lines always contains a line. We shall see that this is no longer true for three or more images of a line, then the above constraint really becomes meaningful.</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Wastoon/myPicGo/img/72f19459565d38162994c24c4bf6be6e.png"></p>
+<p>For the case of a line observed from two images, the rank constraint is always fulfilled. Geometrically this ststes that the two preimages of each line always intersect in some 3D line.</p>
+<h2 id="6-9-The-Multiple-view-Matrix-of-a-Point"><a href="#6-9-The-Multiple-view-Matrix-of-a-Point" class="headerlink" title="6.9 The Multiple-view Matrix of a Point"></a>6.9 The Multiple-view Matrix of a Point</h2><p>In the following, the rank constraints will be rewritten in a more compact and transparent manner. Let us assume we have $m$ images, the first of which is in world coordinates. Then we have projection matrices of the form:</p>
+<p>$$<br>\Pi_1 &#x3D; [I, 0], \ \Pi_2&#x3D;[R_2, T_2], \ …, \ \Pi_m&#x3D;[R_m,T_m] \in \mathbb{R}^{3\times 4},<br>$$</p>
+<p>which model the projection of a point $\textbf{X}$ into the individual images.</p>
+<p>In general for uncalibrated cameras (i.e. $K_i\neq I$), $R_i$ will not be an orthogonal rotation matrix but rather an arbitrary invertible matrix.</p>
+<p>Again, we define the matrix $W_p$ as follows:</p>
+<p>$$<br>W_p &#x3D; \mathcal{I}^{\bot}\Pi &#x3D; \left(<br>    \begin{matrix}<br>        \widehat{\textbf{x}_1}\Pi_1 \\<br>        \widehat{\textbf{x}_2}\Pi_2 \\<br>        \vdots \<br>        \widehat{\textbf{x}_m}\Pi_m<br>    \end{matrix}\right)\in \mathbb{R}^{3m\times 4}.<br>$$</p>
+<p>The rank of the matrix $W_p$ is not affected if we multiply by a full-rank matrix $D_p\in \mathbb{R}^{4\times 5}$ as follows:</p>
+<p>$$<br>W_pD_p &#x3D; \left(<br>    \begin{matrix}<br>        \widehat{\textbf{x}_1}\Pi_1 \\<br>        \widehat{\textbf{x}_2}\Pi_2 \\<br>        \vdots \\<br>        \widehat{\textbf{x}_m}\Pi_m<br>    \end{matrix}\right)<br>    \left(<br>    \begin{matrix}<br>        \widehat{\textbf{x}_1}  &amp;\textbf{x}_1   &amp;0\\<br>        0                     &amp;0            &amp;1<br>    \end{matrix}\right)&#x3D;<br>    \left(<br>    \begin{matrix}<br>        \widehat{\textbf{x}_1}\widehat{\textbf{x}_1}       &amp;0      &amp;0 \\<br>        \widehat{\textbf{x}_2}R_2\widehat{\textbf{x}_1}    &amp;\widehat{\textbf{x}_2}R_2\textbf{x}_1   &amp;\widehat{\textbf{x}_2}T_2 \\<br>        \widehat{\textbf{x}_3}R_3\widehat{\textbf{x}_1}    &amp;\widehat{\textbf{x}_3}R_3\textbf{x}_1   &amp;\widehat{\textbf{x}_3}T_3  \\<br>        \vdots   &amp;\vdots   &amp;\vdots \\<br>        \widehat{\textbf{x}_m}R_m\widehat{\textbf{x}_1}    &amp;\widehat{\textbf{x}_m}R_m\textbf{x}_1   &amp;\widehat{\textbf{x}_m}T_m<br>    \end{matrix}\right)<br>$$</p>
+<p>This <code>means</code> that $rank(W_p)\leq 3$ if and only if the submatrix:</p>
+<p>$$<br>M_p &#x3D; \left(<br>    \begin{matrix}<br>        \widehat{\textbf{x}_2}R_2\textbf{x}_1   &amp;\widehat{\textbf{x}_2}T_2 \\<br>        \widehat{\textbf{x}_3}R_3\textbf{x}_1   &amp;\widehat{\textbf{x}_3}T_3  \\<br>        \vdots   &amp;\vdots   \<br>        \widehat{\textbf{x}_m}R_m\textbf{x}_1   &amp;\widehat{\textbf{x}_m}T_m<br>    \end{matrix}\right) \in \mathbb{R}^{3(m-1)\times 2 }<br>$$</p>
+<p>has $rank(M_p)\leq 1$.</p>
+<p>The matrix</p>
+<p>$$<br>M_p &#x3D; \left(<br>    \begin{matrix}<br>        \widehat{\textbf{x}_2}R_2\textbf{x}_1   &amp;\widehat{\textbf{x}_2}T_2 \\<br>        \widehat{\textbf{x}_3}R_3\textbf{x}_1   &amp;\widehat{\textbf{x}_3}T_3  \\<br>        \vdots   &amp;\vdots   \<br>        \widehat{\textbf{x}_m}R_m\textbf{x}_1   &amp;\widehat{\textbf{x}_m}T_m<br>    \end{matrix}\right) \in \mathbb{R}^{3(m-1)\times 2 }<br>$$</p>
+<p>is called the <code>multiple-view matrix</code> associated with a point $p$. It involves both the image $\textbf{x}_1$ in the first view and the coimages ${\widehat{\textbf{x}}}_i$ in the remaining views.</p>
+<p>In summary:<br><code>For multiple images of a point </code> $p$ <code>the matrices </code> $N_p, W_p, M_p$ <code>satisfy</code>:</p>
+<p>$$<br>rank(M_p) &#x3D; rank(W_p)-2 &#x3D; rank(N_p)-(m+2) \leq 1.<br>$$</p>
+<h2 id="6-10-Multiview-Matrix-Geometric-Interpretation"><a href="#6-10-Multiview-Matrix-Geometric-Interpretation" class="headerlink" title="6.10 Multiview Matrix: Geometric Interpretation"></a>6.10 Multiview Matrix: Geometric Interpretation</h2><p>Let us look into the geometric information contained in the multiple-view matrix:</p>
+<p>$$<br>M_p &#x3D; \left(<br>    \begin{matrix}<br>        \widehat{\textbf{x}_2}R_2\textbf{x}_1   &amp;\widehat{\textbf{x}_2}T_2 \\<br>        \widehat{\textbf{x}_3}R_3\textbf{x}_1   &amp;\widehat{\textbf{x}_3}T_3  \\<br>        \vdots   &amp;\vdots   \\<br>        \widehat{\textbf{x}_m}R_m\textbf{x}_1   &amp;\widehat{\textbf{x}_m}T_m<br>    \end{matrix}\right) \in \mathbb{R}^{3(m-1)\times 2 }.<br>$$</p>
+<p>The constraint $rank(M_p)\leq 1$ implies that the two columns are linearly dependent. In fact that we have:<br>$\lambda_1\widehat{\textbf{x}_i}R_i\textbf{x}_i + \widehat{\textbf{x}_i}T_i &#x3D; 0, i&#x3D;2, …,m$ which yields:</p>
+<p>$$<br>M_p\left(\begin{matrix}<br>    \lambda_1 \\<br>    1<br>\end{matrix}\right) &#x3D; 0.<br>$$</p>
+<p>Therefore the coefficient capturing the linear dependence is simply the <code>distance</code> $\lambda_1$ of the point $p$ from the first camera center. In other words, the multiple-view matrix captures exactly the information about a point $p$ that is missing from a single image, but encoded in multiple images.</p>
+<h2 id="6-11-Relation-to-Epipolar-Constraints"><a href="#6-11-Relation-to-Epipolar-Constraints" class="headerlink" title="6.11 Relation to Epipolar Constraints"></a>6.11 Relation to Epipolar Constraints</h2><p>For the multiple-view matrix:</p>
+<p>$$<br>M_p &#x3D; \left(<br>    \begin{matrix}<br>        \widehat{\textbf{x}_2}R_2\textbf{x}_1   &amp;\widehat{\textbf{x}_2}T_2 \\<br>        \widehat{\textbf{x}_3}R_3\textbf{x}_1   &amp;\widehat{\textbf{x}_3}T_3  \\<br>        \vdots   &amp;\vdots   \\<br>        \widehat{\textbf{x}_m}R_m\textbf{x}_1   &amp;\widehat{\textbf{x}_m}T_m<br>    \end{matrix}\right) \in \mathbb{R}^{3(m-1)\times 2 }.<br>$$</p>
+<p>to have $rank(M_p)&#x3D;1$, it is necessary that the pair of vectors $\widehat{\textbf{x}_i}T_i$ and $\widehat{\textbf{x}}_iR_i\textbf{x}_1$ to be linearly dependent for all $i&#x3D;2,…,m$. This gives the <code>epipolar constraints</code>:</p>
+<p>$$<br>\textbf{x}_i^{\top}\widehat{T_i}R_i \textbf{x}_1 &#x3D; 0<br>$$</p>
+<p>between the first and $i$-th image.<br>Yet, we shall see that the multiview constraint provides more information than the pairwise epipolar constraints.</p>
+<p>We claimed that the linear dependence of $\widehat{\textbf{x}_i}T_i$ and $\widehat{\textbf{x}_i}R_i\textbf{x}_1$ gives rise to the epipolar constraint $\textbf{x}_i^\top \widehat{T_i}R_i\textbf{x}_1 &#x3D;0$. In the following, we shall give a proof of this statement which provides an intuitive geometric understanding of this relationship.</p>
+<p>Assume the two vectors $\widehat{\textbf{x}_i}T_i$ and $\widehat{\textbf{x}_i}R_i\widehat{\textbf{x}_1}$ are dependent, i.e. there is a scalar $\gamma$, such that </p>
+<p>$$<br>\widehat{\textbf{x}_i}T_i &#x3D; \gamma \widehat{\textbf{x}_i}R_i\textbf{x}_1.<br>$$</p>
+<p>Since $\widehat{\textbf{x}_i}T_i \equiv \textbf{x}_i\times T_i$ is proportational to the normal on the plane spanned by $\textbf{x}_i$ and $T_i$, and $\widehat{\textbf{x}_i}R_i\textbf{x}_1$ is proportational to the normal spanned by $\textbf{x}_i$ and $R\textbf{x}_1$, the linear dependence is equivalent to saying that <code>the three vectors</code> $\textbf{x}_i, T_i$ and $R_i\textbf{x}_1$ are <code>coplanar</code>. (Note: $\widehat{\textbf{x}_i}$ 和$T_i$叉乘后的向量与$\widehat{\textbf{x}_i}$ 和$R_i\textbf{x}_1$叉乘后的向量同向且相差一个尺度系数，说明向量$\widehat{\textbf{x}_i}, T_i, R_i\textbf{x}_1$是共平面的，也就有了下面所说的$\widehat{\textbf{x}_i}$与平面的法向量正交。)</p>
+<p>This again is equivalent to saying that the vector $\textbf{x}_i$ is orthogonal to the normal on the plane spanned by the vectors $T_i$ and $R_i\textbf{x}_1$, i.e.</p>
+<p>$$<br>\widehat{\textbf{x}_i}^\top(T_i \times R_i\textbf{x}_1) &#x3D; \widehat{\textbf{x}_i}^\top \widehat{T}_iR_i\textbf{x}_1 &#x3D; 0.<br>$$</p>
+<h2 id="6-12-Analysis-of-the-Multiple-view-Constraint"><a href="#6-12-Analysis-of-the-Multiple-view-Constraint" class="headerlink" title="6.12 Analysis of the Multiple-view Constraint"></a>6.12 Analysis of the Multiple-view Constraint</h2><p>For any nonzero vectors $a_i, b_i\in \mathbb{R}^4, i&#x3D;1,2,…,n$, the matrix</p>
+<p>$$<br>\left(\begin{matrix}<br>    a_1  &amp;b_1\\<br>    a_2  &amp;b_2\\<br>    \vdots &amp;\vdots \\<br>    a_n  &amp;b_n<br>\end{matrix}\right) \in \mathbb{R}^{3n\times 2}<br>$$</p>
+<p>is rank-deficient if and only if $a_ib_j^T-b_ia_j^T  &#x3D; 0$ for all $i,j&#x3D;1,…,n$. We will not prove this statement. Applied to the rank constraint on $M_p$ we get:</p>
+<p>$$<br>\widehat{\textbf{x}_i}R_i\textbf{x}_1(\widehat{\textbf{x}_j}T_j)^\top - \widehat{\textbf{x}_i}T_i(\widehat{\textbf{x}_j}R_j\textbf{x}_1)^\top &#x3D; 0,<br>$$</p>
+<p>which gives the <code>trilinear constraint</code>:</p>
+<p>$$<br>\widehat{\textbf{x}_i}(T_i\textbf{x}_1^\top R_j^\top - R_i\textbf{x}_1T_j^\top)\widehat{\textbf{x}_j} &#x3D; 0.<br>$$</p>
+<p>This is a matrix equation giving $3\times 3&#x3D;9$ scalar trilinear equations, only <code>four</code> of which are linearly independent.</p>
+<p>From the equations:</p>
+<p>$$<br>\widehat{\textbf{x}_i}R_i\textbf{x}_1(\textbf{x}_jT_j)^\top - \widehat{\textbf{x}_i}T_i(\widehat{\textbf{x}_j}R_j\textbf{x}_1)^\top &#x3D; 0, \quad \forall i,j.<br>$$</p>
+<p>we see that as long as the entries in $\widehat{\textbf{x}_j}T_j$ and $\widehat{\textbf{x}_j}R_j\textbf{x}_j$ are non-zero, it follows from the above, that the two vectors $\widehat{\textbf{x}_i}R_i\textbf{x}_1$ and $\widehat{\textbf{x}_i}T_i$ are linearly dependent. If on the other hand $\widehat{\textbf{x}_j}T_j &#x3D; \widehat{\textbf{x}_j}R_j\textbf{x}_1&#x3D;0$ for some view $j$, then we have the rare degenerate case that the point $p$ lies ont the line through the optical centers $o_1$ and $o_j$.</p>
+<p>In other words: Except for degeneracies, the <code>bilinear (epipolar) constrints</code> relating two views are already contained in the <code>trilinear constraints</code> obtained for the multi-view scenario.</p>
+<p>Note that the <code>equivalence</code> between the <code>bilinear and trilinear constraints</code> on one hand and the condition that $rank(M_p)\leq 1$ on the other only holds if the vectors in $M_p$ are nonzero. In certain degenerate cases this is not fulfilled.</p>
+<h2 id="6-13-Uniqueness-of-the-Preimage-Teacher-skip-this-part…"><a href="#6-13-Uniqueness-of-the-Preimage-Teacher-skip-this-part…" class="headerlink" title="6.13 Uniqueness of the Preimage (Teacher skip this part…)"></a>6.13 Uniqueness of the Preimage (Teacher skip this part…)</h2><p>We will now clarify hoe the bilinear and trilinear constraints help to assure the uniqueness of the preimage of a point observed in three images.</p>
+<p>Given three vectors $\textbf{x}_1, \textbf{x}_2, \textbf{x}_3\in \mathbb{R}^3$ and three camera frames with distinct optical centers, if the three images satisfy the <code>pairwise epipolar constraints</code>:</p>
+<p>$$<br>\textbf{x}_i^\top \widehat{T_{ij}}R_{ij}\textbf{x}_j &#x3D; 0, \quad i,j&#x3D;1,2,3.<br>$$</p>
+<p>then a unique preimage is determined except if the three lines associated to image points $\textbf{x}_1, \textbf{x}_2, \textbf{x}_3$ are coplanar. </p>
+<p>Here $T_{ij}$ and $R_{ij}$ refer to the transition between frame $i$ and $j$.<br>Similarly, if these vectors satisfy all <code>trilinear constraints</code>:</p>
+<p>$$<br>\widehat{\textbf{x}_i}(T_{ji}\textbf{x}_i^\top R_{ki}^\top - R_{ji}\textbf{x}_iT_{ki}^\top)\widehat{\textbf{x}_k} &#x3D; 0, \quad i,j,k&#x3D;1,2,3.<br>$$</p>
+<p>then a unique preimage is determine unless the three lines associated to image points $\textbf{x}_1, \textbf{x}_2, \textbf{x}_3$ are colinear.</p>
+<p>We will not prove these statement.(Note: F**k!)</p>
+<h2 id="6-14-Degeneracies-for-the-Bilinear-Constraints"><a href="#6-14-Degeneracies-for-the-Bilinear-Constraints" class="headerlink" title="6.14 Degeneracies for the Bilinear Constraints"></a>6.14 Degeneracies for the Bilinear Constraints</h2><p><img src="https://cdn.jsdelivr.net/gh/Wastoon/myPicGo/img/b2f136e264c110e91ad6f67e4bc9094f.png"><br>In the above example, the point $p$ lies in the plane spanned by the three optical centers which is also called the <code>trifocal plane</code>. </p>
+<p>In this  case, all points of lines do intersect, yet it does not imply a unique 3D point $p$ (a unique preimage). In practice this degenerate case arises rather seldom.</p>
+<p>In the above example, the optical centers lie on a straight line (<code>rectilinear motion</code>). Again, all pairs of lilnes may intersect without there being a unique preimage $p$.</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Wastoon/myPicGo/img/644d0ee37f175f95434c5422e1fc63a3.png"><br>This case is frequent in applications when the camera moves in a straight line (e.g. a car on a highway). Then the epipolar constraints will not allow a unique reconstruction.</p>
+<p>Fortunately, the <code>trilinear constraint assures a unique preimage</code> (unless $p$ is also on the same line with the optical centers).</p>
+<h2 id="6-15-Uniqueness-of-the-Preimage"><a href="#6-15-Uniqueness-of-the-Preimage" class="headerlink" title="6.15 Uniqueness of the Preimage"></a>6.15 Uniqueness of the Preimage</h2><p>Using the multiple-view matrix we obtain a more general and simpler characterization regarding the uniqueness of the preimage.</p>
+<p>Given $m$ vectors representing the $m$ images of a point in $m$ views, they correspond to the same point in the 3D space if the rank of the $M_p$ matrix relative to any of the camera frames is one. If the rank is zero, the point is determined up to the line on which all the camera centers must lie.</p>
+<p>In summary we get:</p>
+<table>
+<thead>
+<tr>
+<th align="center">$rank(M_p)&#x3D;2 \Rightarrow$</th>
+<th align="left">no point correspondence &amp; empty preimage</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">$rank(M_p)&#x3D;1 \Rightarrow$</td>
+<td align="left">point correspondence &amp; unique preimage</td>
+</tr>
+<tr>
+<td align="center">$rank(M_p)&#x3D;0 \Rightarrow$</td>
+<td align="left">point correspondence &amp; preimage not unique</td>
+</tr>
+</tbody></table>
+<p>With these constraints we could decide which features to match for establishing point correspodence over multiple frames.</p>
+<h2 id="6-16-Multiple-view-Factorization-of-Point-Features"><a href="#6-16-Multiple-view-Factorization-of-Point-Features" class="headerlink" title="6.16 Multiple-view Factorization of Point Features"></a>6.16 Multiple-view Factorization of Point Features</h2><p>The rank condition on the multiple-view matrix captures all the constraints among multiple images of a point. In principle, one could perform reconstruction by maximizing some global objective function subject to the rank condition. This would lead to a <code>nonlinear optimization problem analogous to the bundle adjustment in the two-view case</code>.<br>Alternatively, one can aim for a similar <code>separation of structure and motion</code> as done for the two-view case in the eight-point algorithm. Such an algorithm shall be detailed in the following.</p>
+<p>One should point out that this approach does not necessarily lead to a practical algorithm as the spectral approaches do not imply optimality in the context of noise and uncertainty.</p>
+<p>Suppose we have $m$ images $\textbf{x}_1^j, …, \textbf{x}_m^j$ of $n$ points $p^j$ and we want to estimate the unknown projection matrix $\Pi$.</p>
+<p>The condition $rank(M_p)\leq  1$ states that the two columns of $M_p$ are linear dependent. For the $j$-th point $p^j$ this implies:</p>
+<p>$$<br>\left(\begin{matrix}<br>    \widehat{\textbf{x}_2^j}R_2\textbf{x}_1^j \\<br>    \widehat{\textbf{x}_3^j}R_3\textbf{x}_1^j \\<br>    \vdots \\<br>    \widehat{\textbf{x}_m^j}R_m\textbf{x}_1^j \\<br>\end{matrix}\right) + \alpha^j \left(\begin{matrix}<br>    \widehat{\textbf{x}_2^j}T_2 \\<br>    \widehat{\textbf{x}_3^j}T_3 \\<br>    \vdots \<br>    \widehat{\textbf{x}_m^j}T_m \<br>\end{matrix}\right) &#x3D; 0\in \mathbb{R}^{3(m-1)\times 1},<br>$$</p>
+<p>for some parameters $\alpha ^j\in \mathbb{R}, j&#x3D;1,…,n$. Each row in the above equation can be optained from $\lambda_i^j\textbf{x}_i^j &#x3D; \lambda_1^j R_i\textbf{x}_1^j + T_i$, multiplying by $\widehat{\textbf{x}_i^j}$:</p>
+<p>$$<br>\widehat{\textbf{x}_i^j}R_i\textbf{x}_1^j + \widehat{\textbf{x}_i^j}T_i&#x2F;\lambda_1^j &#x3D; 0.<br>$$</p>
+<p>Therefore, $\lambda^j &#x3D; 1&#x2F;\lambda_1^j$ is nothing but the <code>inverse of the depth of point</code> $p^j$ with respect to the first frame.</p>
+<h2 id="6-17-Motion-Estimation-from-Known-Structure"><a href="#6-17-Motion-Estimation-from-Known-Structure" class="headerlink" title="6.17 Motion Estimation from Known Structure"></a>6.17 Motion Estimation from Known Structure</h2><p><code>Assume we have the depth of the points</code> and thus their inverse $\alpha^j$ (i.e. known structure). Then the above equation is linear in the camera motion parameters $R_i$ and $T_i$. Using the stack notation $R_i^s&#x3D;[r_{11}, r_{21}, r_{310}, r_{12}, r_{22}, r_{32}, r_{13}, r_{23}, r_{33}]^T \in \mathbb{R}^9$ and $T_i\in \mathbb{R}^3$, we have the linear equation system:</p>
+<p>$$<br>P_i\left(\begin{matrix}<br>    R_i^s\<br>    T_i<br>\end{matrix}\right) &#x3D; \left(\begin{matrix}<br>    \textbf{x}_1^{1T}\otimes \widehat{\textbf{x}_i^1} &amp;\alpha^1\widehat{\textbf{x}_i^1} \\<br>    \textbf{x}_1^{2T}\otimes \widehat{\textbf{x}_i^2} &amp;\alpha^2\widehat{\textbf{x}_i^2} \\<br>    \vdots &amp;\vdots \\<br>    \textbf{x}_1^{nT}\otimes \widehat{\textbf{x}_i^n} &amp;\alpha^n\widehat{\textbf{x}_i^n}<br>\end{matrix}\right)<br>\left(\begin{matrix}<br>    R_i^s\\<br>    T_i<br>\end{matrix}\right) &#x3D; 0 \in \mathbb{R}^{3n}.<br>$$</p>
+<p>One can show that the matrix $P_i\in \mathbb{R}^{3n\times 12}$ is of <code>rank 11 if more than</code> $n&#x3D;6$ <code>points in general position are given</code>.<br>(Note:我们可以看到当有5对点时，$3n$就已经大于12了，但是反对称矩阵里面的秩为2，只有两行是线性无关的，因此$3n$行里面其实线性无关的只有$2n$行，因此当有超过6对点时，我们才能确保说$P_i$的秩为11时有唯一的解。)<br>In that case the null space of $P_i$ is onedimensional and the projection matrix $\Pi_i &#x3D; (R_i, T_i)$ is given up to a scale factor. In practice one would use more than 6 points, obtain a  full-rank matrix and compute the solution by a singular value decomposition (SVD).<br>(Note:可以明显看出，这个其实和典型的8点法还是有区别的，典型的8点法完全将motion和structure解耦开了，即估计相机motion的时候是不用知道任何结构的信息的，不管是3D的点也好，还是点的深度信息也好，都是不用知道的，但这里的8点法估计motion时，需要一个参数$\alpha^j $)，这个参数得事先知道。才能去估计相机的motion(R, T)，进而才能估计3D点的坐标，因此没有完全将motion和structure解耦开来。)</p>
+<h2 id="6-18-Structure-Estimation-from-Known-Motion"><a href="#6-18-Structure-Estimation-from-Known-Motion" class="headerlink" title="6.18 Structure Estimation from Known Motion"></a>6.18 Structure Estimation from Known Motion</h2><p>In turn, if the camera motion $\Pi_i &#x3D; (R_i, T_i), i&#x3D;1,2,…,m$ is known, we can estimate the structure (depth parameters $\alpha^j, j&#x3D;1,…,m$). The least squares solution for the above equation is given by:</p>
+<p>$$<br>\alpha_j &#x3D; -\frac{\sum_{i&#x3D;2}^m(\widehat{\textbf{x}_i^j}T_i)^\top \widehat{\textbf{x}_i^j}R_i\textbf{x}<em>1^j}{\sum</em>{i&#x3D;2}^m ||\widehat{\textbf{x}_i^j}T_i||^2}, \quad j&#x3D;1,2,…,n.<br>$$</p>
+<p>In this way one can <code>iteratively estimate structure and motion</code>, estimating one while keeping the fixed.</p>
+<p>For <code>initialization</code> one could apply the <code>eight-point algorithm</code> to the first two image to obtain an eatimate of the structure parameters $\alpha^j$.<br>(Note: 初始化的方案：先用两帧图像使用8点法去求解motion，进而估计structure，得到深度，然后在这个基础上使用multi-view的8点法进行估计motion，然后借由motion去优化$\alpha$,反复迭代motion与structure的求解。)</p>
+<p>While the equation for $\Pi_i$ makes use of the two frames 1 and $i$ only, the structure parameter estimation takes into account all frames. This can be done either in <code>batch mode</code> or <code>recursively</code>.</p>
+<p>As for the two-view case, such spectral approaches <code>do not guarantee optimiality in the presence of noise and uncertainty</code>.</p>
+<h2 id="6-19-Multiple-view-Matrix-for-Lines"><a href="#6-19-Multiple-view-Matrix-for-Lines" class="headerlink" title="6.19 Multiple-view Matrix for Lines"></a>6.19 Multiple-view Matrix for Lines</h2><p>The matrix:</p>
+<p>$$<br>W_l &#x3D; \left(\begin{matrix}<br>    \ell^\top_1\Pi_1 \\<br>    \ell^\top_2\Pi_2 \\<br>    \vdots \\<br>    \ell^\top_m\Pi_m<br>\end{matrix}\right) \in \mathbb{R}^{m\times 4}<br>$$</p>
+<p>associated with $m$ images of a line in space satisfies the rank constraint $rank(W_l)\leq 2$, because $W_l\textbf{X}_0 &#x3D; W_l\textbf{V}&#x3D;0$ for the base point $\textbf{X}_0$ and the direction $\textbf{V}$ of the line. To find a more compact representation, let us assume that the first camera is in world coordinates, i.e. $\Pi_1&#x3D;(I,0)$. <code>The rank is not affected by multiplying with a full-rank matrix </code> $D_l\in \mathbb{R}^{4\times 5}$:</p>
+<p>$$<br>W_lD_l &#x3D; \left(\begin{matrix}<br>    \ell_1^\top    &amp;0 \\<br>    \ell^\top_2 R_2 &amp;\ell^\top_2T_2\\<br>    \vdots &amp;\vdots \\<br>    \ell^\top_mR_m &amp;\ell^\top_mT_m<br>\end{matrix}\right)<br>\left(\begin{matrix}<br>    \ell_1  &amp;\widehat{\ell_1}  &amp;0 \\<br>    0 &amp;0 &amp;1<br>\end{matrix}\right) &#x3D;<br>\left(\begin{matrix}<br>    \ell_1^\top\ell_1    &amp;0     &amp;0\\<br>    \ell^\top_2R_2\ell_1 &amp;\ell^\top_2R_2\widehat{\ell_1} &amp;\ell^\top_2T_2 \\<br>    \vdots &amp;\vdots &amp;\vdots\\<br>    \ell^\top_mR_m\ell_1 &amp;\ell^\top_mR_m\widehat{\ell_1} &amp;\ell^\top_mT_m \\<br>\end{matrix}\right)<br>$$</p>
+<p>Since multiplication with a full rank matrix does not affect the rank, we have:</p>
+<p>$$<br>rank(W_lD_l) &#x3D; rank(W_l) \leq 2.<br>$$</p>
+<p>Since the first column of $W_lD_l$ is linearly independent from the remaining ones, the submatrix:</p>
+<p>$$<br>\left(\begin{matrix}<br>    \ell^\top_2R_2\widehat{\ell_1} &amp;\ell^\top_2T_2 \\<br>    \vdots &amp;\vdots\\<br>    \ell^\top_mR_m\widehat{\ell_1} &amp;\ell^\top_mT_m \\<br>\end{matrix}\right) \in \mathbb{R}^{(m-1)\times 5},<br>$$</p>
+<p>has the rank constraint:</p>
+<p>$$<br>rank(M_l) \leq 1.<br>$$</p>
+<p>(Note: 这个约束其实蛮strong的，一般我们使用multi-view进行重建时，$m$的取值会比较大，比如说是6，那么这种情况下得到的$5\times 5$的矩阵要保持秩小于1其实还挺难的)</p>
+<p>For the case of a line projected into $m$ images, we have a much stronger rank-condtraint than in the case of a projected point:<br>For a sufficiently large number of views $m$, the matrix $M_l$ could in principle have a rank of five. The above constraint states that <code>a meaningful preimage of </code> $m$ <code>observed lines can only exist if </code> $rank(M_l)\leq 1$.</p>
+<h2 id="6-20-Trilinear-Constraints-for-a-Line"><a href="#6-20-Trilinear-Constraints-for-a-Line" class="headerlink" title="6.20 Trilinear Constraints for a Line"></a>6.20 Trilinear Constraints for a Line</h2><p>Again, we can take a closer look at the meaning of the above rank constraint. Regarding the first three columns of $M_l$ it implies that respective row vectors must be pairwise linearly dependent, i.e. for all $i,j\neq 1$:</p>
+<p>$$<br>\ell^\top_1 R_i\widehat{\ell_1} \sim \ell_j^\top R_j\widehat{\ell_1},<br>$$</p>
+<p>which is equivalent to the trilinear equation:</p>
+<p>$$<br>\ell_iR_i\widehat{\ell_1}R^\top_j\ell_j &#x3D; 0.<br>$$</p>
+<p>Proof: The above proportionality states that <code>the three vectors</code> $R_i^\top\ell_i$, $R^\top_j\ell_j$ and $\ell_1$ <code>are coplanar</code>. The lower equation is the equivalent ststement that the vector $R_i^\top \ell_i$ is orthogonal to the normal on the plane spanned by $R_j^\top\ell_j$ and $\ell_1$.</p>
+<p>Interestingly, the above constraint only involves the camera rotations, not the camera translations.</p>
+<p>Taking into account the fourth column of the multiple-view matrix $M_l$, the rank constraint implies the linear dependency between the $i$-th and the $j$-th row. This is equivalent to the trilinear constraint:</p>
+<p>$$<br>\ell_j^\top T_j\ell^\top _iR_i\widehat{\ell_1}-\ell_i^\top T_i\ell^\top _jR_j\widehat{\ell_1} &#x3D; 0.<br>$$</p>
+<p>The proof follows from the general analysis of the Multiple-view Constraint in ##6.12##.</p>
+<p>The above constraint relates the first, the $i$-th and the $j$-th images. From previous discussion, we saw that all nontrivial constraints in the case of lines involve at least three images. The two trilinear constraints above are equivalent to the rank constraint if the scalar $\ell_i^\top T_i\neq 0$, i.e. in non-degenerate cases. </p>
+<p>In general, $rank(M_l)\leq 1$ if and only if all its $2\times 2$-minors have zero determinant. Since these minors only include three images at a time, one can conclude that <code>any multi-view constraint on lines can be reduced to constraints which only involve three lines at a time</code>.</p>
+<h2 id="6-21-Uniqueness-of-the-Preimage"><a href="#6-21-Uniqueness-of-the-Preimage" class="headerlink" title="6.21 Uniqueness of the Preimage"></a>6.21 Uniqueness of the Preimage</h2><p> The key idea to the rank constraint on the multiple-view matrix $M_l$ was to assure that $m$ observations of a line correspond to a consistent preimage $L$. The uniqueness of the preimage in the case of the trilinear constraints can be characterized as follows:</p>
+<hr>
+<p> <strong>Lemma</strong>: Given three camera frames with distinct optical centers and any three vectors $\ell_1, \ell_2, \ell_3\in \mathbb{R}^3$ that represent three image lines. If the three image lines satisfy the trilinear consrraints:<br> $$\ell_j^\top T_{ji}R_{ki}\widehat{\ell_i} - \ell_k^\top T_{ki}\ell_j^\top R_{ji}\widehat{\ell_i}&#x3D;0, \quad i,j,k\in {1,2,3}.$$<br> then their preimage $L$ is uniquely determined except for the case in which the preimage of every $\ell_i$ is the same plane in space. This is the only degenerate case, and in this case, the matrix $M_l$ becomes zero.</p>
+<hr>
+<p>Note that the above constraint combines the two trilinear constraints introduced on the previous section.</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Wastoon/myPicGo/img/29ef4f2cff0c6cdbd2afa0e61e781dcd.png"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/Wastoon/myPicGo/img/03cf49d7083d838e3afb5630fd44c49d.png"></p>
+<p>A similar statement can be made regarding the uniqueness of the preimage of $m$ lines in relation to the rank of the multiview matrix $M_l$.</p>
+<hr>
+<p><strong>Theorem</strong>:<br>Given $m$ vectors $\ell_i \in \mathbb{R}^3$ representing images of lines with respect to $m$ camera frames. They correspond to the same line in space if the rank of the matrix $M_l$ relative to any of the camera frames is 1. If its rank is 0 (i.e. the matrixx $M_l$ itself is zero), then the line is determined up to a plane on which all the camera centers must lie.</p>
+<hr>
+<p>Overall we have the following cases:</p>
+<table>
+<thead>
+<tr>
+<th align="center">$rank(M_l)&#x3D;2  \Rightarrow$</th>
+<th align="left">no line correspondence</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">$rank(M_l)&#x3D;1  \Rightarrow$</td>
+<td align="left">line correspondence &amp; unique preimage</td>
+</tr>
+<tr>
+<td align="center">$rank(M_l)&#x3D;0  \Rightarrow$</td>
+<td align="left">line correspondence &amp; preimage not unique (在第一张图片形成的preimage平面内translation camera而没有其他motion)</td>
+</tr>
+</tbody></table>
+<h2 id="6-22-Summary"><a href="#6-22-Summary" class="headerlink" title="6.22 Summary"></a>6.22 Summary</h2><p>One can generalize the two-view scenario to that of <code>simultaneously considering </code> $m\geq 2$ <code>images</code> of a scene. The intrinsic constraints among multiple images of a point or a line can be expressed in terms of <code>rank conditions</code> on the matrix $N$, $W$ or $M$.</p>
+<p>The relationship among these rank conditions is as follows:</p>
+<table>
+<thead>
+<tr>
+<th align="center"></th>
+<th align="center">(Pre) image</th>
+<th align="center">coimage</th>
+<th align="center">Jointly</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">Point</td>
+<td align="center">$rank(N_p)\leq m+3$</td>
+<td align="center">$rank(W_p)\leq 3$</td>
+<td align="center">$rank(M_p)\leq 1$</td>
+</tr>
+<tr>
+<td align="center">Line</td>
+<td align="center">$rank(N_l)\leq 2m+2$</td>
+<td align="center">$rank(W_l)\leq 2$</td>
+<td align="center">$rank(M_l)\leq 1$</td>
+</tr>
+</tbody></table>
+<p>These rank conditions capture the relationship among corresponding geometric primitives in multiple images. They impose the <code>existence of unique preimages</code> (up to degenerate cases). Moreover, they give rise to natural <code>factorization-based algorithm for multiview recovery of 3D structure and motion</code> (i.e. generalizations of the 8-point algorithm).</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">KMnO4</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://wastoon.github.io/2022/03/09/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%85%AD%EF%BC%89/">https://wastoon.github.io/2022/03/09/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%85%AD%EF%BC%89/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://wastoon.github.io" target="_blank">KMnO4的行云小扎</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/">计算机视觉</a><a class="post-meta__tags" href="/tags/SFM/">SFM</a></div><div class="post_share"><div class="social-share" data-image="/img/MVG-5-cover.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button button--animated"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.png" target="_blank"><img class="post-qr-code-img" src="/img/wechat.png" alt="wechat"/></a><div class="post-qr-code-desc">wechat</div></li><li class="reward-item"><a href="/img/alipay.png" target="_blank"><img class="post-qr-code-img" src="/img/alipay.png" alt="alipay"/></a><div class="post-qr-code-desc">alipay</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%94%EF%BC%89/"><img class="next-cover" src="/img/MVG-5-cover.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">多视图几何（五）</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/02/21/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%80%EF%BC%89/" title="MVG-多视图几何（一）"><img class="cover" src="/img/MVG-1-cover.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-21</div><div class="title">MVG-多视图几何（一）</div></div></a></div><div><a href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%89%EF%BC%89/" title="多视图几何（三）"><img class="cover" src="/img/MVG-3-cover.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-23</div><div class="title">多视图几何（三）</div></div></a></div><div><a href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%8C%EF%BC%89/" title="多视图几何（二）"><img class="cover" src="/img/MVG-2-cover.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-23</div><div class="title">多视图几何（二）</div></div></a></div><div><a href="/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%94%EF%BC%89/" title="多视图几何（五）"><img class="cover" src="/img/MVG-5-cover.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-28</div><div class="title">多视图几何（五）</div></div></a></div><div><a href="/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%9B%9B%EF%BC%89/" title="多视图几何（四）"><img class="cover" src="/img/MVG-4-cover.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-28</div><div class="title">多视图几何（四）</div></div></a></div><div><a href="/2021/11/21/Vison-Transformer%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0%E8%A7%A3%E8%AF%BB%EF%BC%88%E4%B8%80%EF%BC%89/" title="Vison Transformer系列文章解读（一）"><img class="cover" src="/img/DETR.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2021-11-21</div><div class="title">Vison Transformer系列文章解读（一）</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">KMnO4</div><div class="author-info__description">西安交通大学硕士（CV，3D人体姿态估计，动作生成）</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">9</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Wastoon"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/Wastoon" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="/mengrongye@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">Everything is the meaning of life.<div class="twopeople"><div class="twopeople"><div class="container"style="height:200px;"><canvas class="illo"width="800"height="800"style="max-width: 200px; max-height: 200px; touch-action: none; width: 640px; height: 640px;"></canvas></div><script src="https://cdn.jsdelivr.net/gh/Justlovesmile/CDN/js/twopeople1.js"></script><script src="https://cdn.jsdelivr.net/gh/Justlovesmile/CDN/js/zdog.dist.js"></script><script id="rendered-js"src="https://cdn.jsdelivr.net/gh/Justlovesmile/CDN/js/twopeople.js"></script><style>.twopeople{margin:0;align-items:center;justify-content:center;text-align:center}canvas{display:block;margin:0 auto;cursor:move}</style></div></div></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Chapter6-Reconstruction-from-Multiple-Views"><span class="toc-number">1.</span> <span class="toc-text">Chapter6 Reconstruction from Multiple Views</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#6-1-Multiple-View-Geometry"><span class="toc-number">1.1.</span> <span class="toc-text">6.1 Multiple View Geometry</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-2-Trifocal-Tensor-versus-Multiview-Matrices"><span class="toc-number">1.2.</span> <span class="toc-text">6.2 Trifocal Tensor versus Multiview Matrices</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-3-Preimage-from-Multiple-Views"><span class="toc-number">1.3.</span> <span class="toc-text">6.3 Preimage from Multiple Views</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-4-Preimage-and-Coimage-of-Points-and-Lines"><span class="toc-number">1.4.</span> <span class="toc-text">6.4 Preimage and Coimage of Points and Lines</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-5-Preimage-and-Coimage-of-Points-and-Lines"><span class="toc-number">1.5.</span> <span class="toc-text">6.5 Preimage and Coimage of Points and Lines</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-6-From-Preimages-to-Rank-Constraints"><span class="toc-number">1.6.</span> <span class="toc-text">6.6 From Preimages to Rank Constraints</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-7-Point-Features"><span class="toc-number">1.7.</span> <span class="toc-text">6.7 Point Features</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-8-Line-Features"><span class="toc-number">1.8.</span> <span class="toc-text">6.8 Line Features</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-9-Rank-Consraints-Geometric-Interpretation"><span class="toc-number">1.9.</span> <span class="toc-text">6.9 Rank Consraints: Geometric Interpretation</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-9-The-Multiple-view-Matrix-of-a-Point"><span class="toc-number">1.10.</span> <span class="toc-text">6.9 The Multiple-view Matrix of a Point</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-10-Multiview-Matrix-Geometric-Interpretation"><span class="toc-number">1.11.</span> <span class="toc-text">6.10 Multiview Matrix: Geometric Interpretation</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-11-Relation-to-Epipolar-Constraints"><span class="toc-number">1.12.</span> <span class="toc-text">6.11 Relation to Epipolar Constraints</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-12-Analysis-of-the-Multiple-view-Constraint"><span class="toc-number">1.13.</span> <span class="toc-text">6.12 Analysis of the Multiple-view Constraint</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-13-Uniqueness-of-the-Preimage-Teacher-skip-this-part%E2%80%A6"><span class="toc-number">1.14.</span> <span class="toc-text">6.13 Uniqueness of the Preimage (Teacher skip this part…)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-14-Degeneracies-for-the-Bilinear-Constraints"><span class="toc-number">1.15.</span> <span class="toc-text">6.14 Degeneracies for the Bilinear Constraints</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-15-Uniqueness-of-the-Preimage"><span class="toc-number">1.16.</span> <span class="toc-text">6.15 Uniqueness of the Preimage</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-16-Multiple-view-Factorization-of-Point-Features"><span class="toc-number">1.17.</span> <span class="toc-text">6.16 Multiple-view Factorization of Point Features</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-17-Motion-Estimation-from-Known-Structure"><span class="toc-number">1.18.</span> <span class="toc-text">6.17 Motion Estimation from Known Structure</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-18-Structure-Estimation-from-Known-Motion"><span class="toc-number">1.19.</span> <span class="toc-text">6.18 Structure Estimation from Known Motion</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-19-Multiple-view-Matrix-for-Lines"><span class="toc-number">1.20.</span> <span class="toc-text">6.19 Multiple-view Matrix for Lines</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-20-Trilinear-Constraints-for-a-Line"><span class="toc-number">1.21.</span> <span class="toc-text">6.20 Trilinear Constraints for a Line</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-21-Uniqueness-of-the-Preimage"><span class="toc-number">1.22.</span> <span class="toc-text">6.21 Uniqueness of the Preimage</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-22-Summary"><span class="toc-number">1.23.</span> <span class="toc-text">6.22 Summary</span></a></li></ol></li></ol></div></div><div class="card-widget card-weibo"><div class="card-content"><div class="item-headline"><i class="fab fa-weibo"></i><span>微博热搜</span></div><div id="weibo-container" style="width: 100%; height: 150px;font-size: 95%;"></div></div></div><script defer="defer" data-pjax="data-pjax" src="/js/card_weibo.js"></script><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/03/09/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%85%AD%EF%BC%89/" title="多视图几何（六）"><img src="/img/MVG-5-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="多视图几何（六）"/></a><div class="content"><a class="title" href="/2022/03/09/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%85%AD%EF%BC%89/" title="多视图几何（六）">多视图几何（六）</a><time datetime="2022-03-09T08:15:24.000Z" title="发表于 2022-03-09 16:15:24">2022-03-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%94%EF%BC%89/" title="多视图几何（五）"><img src="/img/MVG-5-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="多视图几何（五）"/></a><div class="content"><a class="title" href="/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%94%EF%BC%89/" title="多视图几何（五）">多视图几何（五）</a><time datetime="2022-02-28T07:02:52.000Z" title="发表于 2022-02-28 15:02:52">2022-02-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%9B%9B%EF%BC%89/" title="多视图几何（四）"><img src="/img/MVG-4-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="多视图几何（四）"/></a><div class="content"><a class="title" href="/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%9B%9B%EF%BC%89/" title="多视图几何（四）">多视图几何（四）</a><time datetime="2022-02-28T06:43:44.000Z" title="发表于 2022-02-28 14:43:44">2022-02-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%89%EF%BC%89/" title="多视图几何（三）"><img src="/img/MVG-3-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="多视图几何（三）"/></a><div class="content"><a class="title" href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%89%EF%BC%89/" title="多视图几何（三）">多视图几何（三）</a><time datetime="2022-02-23T11:44:57.000Z" title="发表于 2022-02-23 19:44:57">2022-02-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%8C%EF%BC%89/" title="多视图几何（二）"><img src="/img/MVG-2-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="多视图几何（二）"/></a><div class="content"><a class="title" href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%8C%EF%BC%89/" title="多视图几何（二）">多视图几何（二）</a><time datetime="2022-02-23T10:59:40.000Z" title="发表于 2022-02-23 18:59:40">2022-02-23</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/MVG-5-cover.png')"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By KMnO4</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font-plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font-minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"><script>if (!window.MathJax) {
+  window.MathJax = {
+    tex: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"]],
+      tags: 'ams'
+    },
+    chtml: {
+      scale: 1.2
+    },
+    options: {
+      renderActions: {
+        findScript: [10, doc => {
+          for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+            const display = !!node.type.match(/; *mode=display/)
+            const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+            const text = document.createTextNode('')
+            node.parentNode.replaceChild(text, node)
+            math.start = {node: text, delim: '', n: 0}
+            math.end = {node: text, delim: '', n: 0}
+            doc.math.push(math)
+          }
+        }, ''],
+        insertScript: [200, () => {
+          document.querySelectorAll('mjx-container:not\([display]\)').forEach(node => {
+            const target = node.parentNode
+            if (target.nodeName.toLowerCase() === 'li') {
+              target.parentNode.classList.add('has-jax')
+            } else {
+              target.classList.add('has-jax')
+            }
+          });
+        }, '', false]
+      }
+    }
+  }
+  
+  const script = document.createElement('script')
+  script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js'
+  script.id = 'MathJax-script'
+  script.async = true
+  document.head.appendChild(script)
+} else {
+  MathJax.startup.document.state(0)
+  MathJax.texReset()
+  MathJax.typeset()
+}</script><script>function addGitalkSource () {
+  const ele = document.createElement('link')
+  ele.rel = 'stylesheet'
+  ele.href= 'https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css'
+  document.getElementsByTagName('head')[0].appendChild(ele)
+}
+
+function loadGitalk () {
+  function initGitalk () {
+    var gitalk = new Gitalk(Object.assign({
+      clientID: '60cf579829afb2b2cdf9',
+      clientSecret: '991dfac32f5e2bd0470bd4b8f5b8a2ef54e9b164',
+      repo: 'Wastoon.github.io',
+      owner: 'Wastoon',
+      admin: ['Wastoon'],
+      id: 'c8e8093ab1b8b9b0c25738d21f5abee7',
+      language: 'zh-CN',
+      perPage: 10,
+      distractionFreeMode: false,
+      pagerDirection: 'last',
+      createIssueManually: true,
+      updateCountCallback: commentCount
+    },false))
+
+    gitalk.render('gitalk-container')
+  }
+
+  if (typeof Gitalk === 'function') initGitalk()
+  else {
+    addGitalkSource()
+    getScript('https://cdn.jsdelivr.net/npm/gitalk@latest/dist/gitalk.min.js').then(initGitalk)
+  }
+}
+
+function commentCount(n){
+  let isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+  if (isCommentCount) {
+    isCommentCount.innerHTML= n
+  }
+}
+
+if ('Gitalk' === 'Gitalk' || !true) {
+  if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+  else loadGitalk()
+} else {
+  function loadOtherComment () {
+    loadGitalk()
+  }
+}</script></div><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="true"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-show-text.min.js" data-mobile="false" data-text="I,Miss,You" data-fontsize="15px" data-random="false" async="async"></script><script>((window.gitter = {}).chat = {}).options = {
+  disableDefaultChat: true,
+};
+document.addEventListener('gitter-sidecar-ready', (e) => {
+  const GitterChat = e.detail.Chat
+  let chat
+
+  function initGitter () {
+    chat = new GitterChat({
+      room: 'OMGsitetalk/community',
+      activationElement: '#chat_btn'
+    });
+  }
+
+  initGitter()
+
+  if (false) {
+    document.addEventListener('pjax:complete', () => {
+      chat.destroy()
+      initGitter()
+    })
+  }
+
+})</script><script src="https://sidecar.gitter.im/dist/sidecar.v1.js" async="async" defer="defer"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_clock_injector_config(){
+    var parent_div_git = document.getElementsByClassName('sticky_layout')[0];
+    var item_html = '<div class="card-widget card-clock"><div class="card-glass"><div class="card-background"><div class="card-content"><div id="hexo_electric_clock"><img class="entered loading" id="card-clock-loading" src="https://cdn.jsdelivr.net/gh/tzy13755126023/BLOG_SOURCE/theme_f/loading.gif" style="height: 120px; width: 100%;" data-ll-status="loading"/></div></div></div></div></div>';
+    console.log('已挂载butterfly_clock')
+    parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+    }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var flag = 0;
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_clock_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_clock_injector_config();
+  }
+  </script><script src="https://pv.sohu.com/cityjson?ie=utf-8"></script><script data-pjax src="https://cdn.jsdelivr.net/npm/hexo-butterfly-clock/lib/clock.min.js"></script><script async src="//at.alicdn.com/t/font_2032782_8d5kxvn09md.js"></script><script data-pjax src="https://cdn.jsdelivr.net/npm/hexo-filter-gitcalendar/lib/gitcalendar.js"></script><script data-pjax>
+                        function gitcalendar_injector_config(){
+                          var parent_div_git = document.getElementById('recent-posts');
+                          var item_html = '<div class="recent-post-item" style="width:100%;height:auto;padding:10px;"><style>#git_container{min-height: 280px}@media screen and (max-width:650px) {#git_container{min-height: 0px}}</style><div id="git_loading" style="width:10%;height:100%;margin:0 auto;display: block;"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 50 50" style="enable-background:new 0 0 50 50" xml:space="preserve"><path fill="#d0d0d0" d="M25.251,6.461c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615V6.461z" transform="rotate(275.098 25 25)"><animatetransform attributeType="xml" attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="0.6s" repeatCount="indefinite"></animatetransform></path></svg><style>#git_container{display: none;}</style></div><div id="git_container"></div></div>';
+                          parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+                          console.log('已挂载gitcalendar')
+                          }
+
+                        if( document.getElementById('recent-posts') && (location.pathname ==='/'|| '/' ==='all')){
+                            gitcalendar_injector_config()
+                            GitCalendarInit("https://gitcalendar.akilar.top/api?Wastoon",['#ebedf0', '#fdcdec', '#fc9bd9', '#fa6ac5', '#f838b2', '#f5089f', '#c4067e', '#92055e', '#540336', '#48022f', '#30021f'],'Wastoon')
+                        }
+                      </script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>
