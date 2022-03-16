@@ -1,0 +1,423 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>多视图几何（七） | KMnO4的行云小扎</title><meta name="keywords" content="计算机视觉,SFM"><meta name="author" content="KMnO4"><meta name="copyright" content="KMnO4"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Chapter7 Bundle Adjustment &amp; Nonlinear Optimization7.1 Optimality in Noisy Real World ConditionsIn the previous chapters we discussed linear approaches to solve the structure and motion problem. I">
+<meta property="og:type" content="article">
+<meta property="og:title" content="多视图几何（七）">
+<meta property="og:url" content="https://wastoon.github.io/2022/03/16/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%83%EF%BC%89/index.html">
+<meta property="og:site_name" content="KMnO4的行云小扎">
+<meta property="og:description" content="Chapter7 Bundle Adjustment &amp; Nonlinear Optimization7.1 Optimality in Noisy Real World ConditionsIn the previous chapters we discussed linear approaches to solve the structure and motion problem. I">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://wastoon.github.io/img/MVG-7-cover.png">
+<meta property="article:published_time" content="2022-03-16T11:44:07.000Z">
+<meta property="article:modified_time" content="2022-03-16T12:46:00.668Z">
+<meta property="article:author" content="KMnO4">
+<meta property="article:tag" content="计算机视觉">
+<meta property="article:tag" content="SFM">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://wastoon.github.io/img/MVG-7-cover.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://wastoon.github.io/2022/03/16/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%83%EF%BC%89/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><meta/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '多视图几何（七）',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-03-16 20:46:00'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const fontSizeVal = saveToLocal.get('global-font-size')
+    if (fontSizeVal !== undefined) {
+      document.documentElement.style.setProperty('--global-font-size', fontSizeVal + 'px')
+    }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-butterfly-clock/lib/clock.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/l-lin/font-awesome-animation/dist/font-awesome-animation.min.css" media="defer" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-butterfly-tag-plugins-plus@latest/lib/tag_plugins.min.css" media="defer" onload="this.media='all'"><script async src="https://cdn.jsdelivr.net/npm/hexo-butterfly-tag-plugins-plus@latest/lib/carousel-touch.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-filter-gitcalendar/lib/gitcalendar.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/icon.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">10</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 网站统计</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 自留地</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 吉他谱</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> Movie</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 嗑盐&amp;摸鱼</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 文献</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 经典开源项目</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 个人项目</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/MVG-7-cover.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">KMnO4的行云小扎</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 网站统计</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 自留地</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 吉他谱</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> Movie</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 嗑盐&amp;摸鱼</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 文献</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 经典开源项目</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 个人项目</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">多视图几何（七）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-03-16T11:44:07.000Z" title="发表于 2022-03-16 19:44:07">2022-03-16</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-03-16T12:46:00.668Z" title="更新于 2022-03-16 20:46:00">2022-03-16</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/">计算机视觉</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/SFM/">SFM</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>17分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="多视图几何（七）"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="Chapter7-Bundle-Adjustment-amp-Nonlinear-Optimization"><a href="#Chapter7-Bundle-Adjustment-amp-Nonlinear-Optimization" class="headerlink" title="Chapter7 Bundle Adjustment &amp; Nonlinear Optimization"></a>Chapter7 Bundle Adjustment &amp; Nonlinear Optimization</h1><h2 id="7-1-Optimality-in-Noisy-Real-World-Conditions"><a href="#7-1-Optimality-in-Noisy-Real-World-Conditions" class="headerlink" title="7.1 Optimality in Noisy Real World Conditions"></a>7.1 Optimality in Noisy Real World Conditions</h2><p>In the previous chapters we discussed <code>linear approaches to solve the structure and motion problem</code>. In particular, the 8-point algorithm provides <code>closed-form solutions</code> to estimate the camera parameters and the 3D structure, based on <code>singular value decomposition</code>. (SVD)</p>
+<p>However, if we have noisy data $\tilde{\textbf{x}_1}, \tilde{\textbf{x}_2}$ (correspondence not exact or even incorrect), then we have <code>no guarantee</code>:</p>
+<ul>
+<li><code>that </code> $R$ and $T$ <code>are as close as possible to the true solution</code>.</li>
+<li><code>that we will get a consistent reconstruction</code>.</li>
+</ul>
+<p><img src="https://cdn.jsdelivr.net/gh/Wastoon/myPicGo/img/7cded59feb3ae32c81ca0a8ceac576e2.png"></p>
+<h2 id="7-2-Statistical-Approaches-to-Cope-with-Noise"><a href="#7-2-Statistical-Approaches-to-Cope-with-Noise" class="headerlink" title="7.2 Statistical Approaches to Cope with Noise"></a>7.2 Statistical Approaches to Cope with Noise</h2><p>The linear approaches are <code>elegant</code> because optimal solutions to respective problems can be computed in <code>closed form</code>.</p>
+<p>However, they often fail when dealing with noisy and imprecise point locations. Since measurement noise is not explicitly considered or modeled, such spectral methods often provide <code>suboptimal performence in noisy real-world conditions</code>.</p>
+<p>In order to take noise and statistical flucation into account, one can revert to a <code>Bayesian formulation</code> and determine the most likely camera transformation $R, T$ and ‘true’ 2D coordinates ${x}$ givens the measured coordinates $\tilde{\textbf{x}}$, by perfroming a <code>maximum a posteriori estimate</code>:</p>
+<p>$$<br>\underset{\textbf{x}, R, T}{argmax} \mathcal{P}(\textbf{x}, R, T |\tilde{\textbf{x}}) &#x3D; \underset{\textbf{x},R,T}{argmax} \mathcal{P}(\tilde{\textbf{x}}|\textbf{x},R,T)\mathcal{P}(\textbf{x}, R, T)<br>$$</p>
+<p>(Note: 后验概率&#x3D; 似然概率 * 先验概率)</p>
+<p>This approach will however involve modeling probability densities $\mathcal{P}$ on the fairly complicated space $SO(3)\times \S^2$ of rotation and translation parameters, as $R\in SO(3)$ and $T\in \S^2$(3D translation with unit length).</p>
+<h2 id="7-3-Bundle-Adjustment-and-Nonlinear-Optimization"><a href="#7-3-Bundle-Adjustment-and-Nonlinear-Optimization" class="headerlink" title="7.3 Bundle Adjustment and Nonlinear Optimization"></a>7.3 Bundle Adjustment and Nonlinear Optimization</h2><p>Under the assumption that the observed 2D point coordinates $\tilde{\textbf{x}}$ are corrupted by <code>zero-mean Gaussian noise</code>, maximum likelihood estimation leads to <code>bundle adjustment</code>:</p>
+<p>$$<br>\textbf{E}(R, T, \textbf{X}_1, …, \textbf{X}_N)&#x3D;\sum_{j&#x3D;1}^N |\tilde{\textbf{x}_1}^j -\pi (\textbf{X}_j)|^2 + |\tilde{\textbf{x}_2}^j - \pi(R, T, \textbf{X}_j)|^2,<br>$$</p>
+<p>where $\textcolor{green}{\pi(R,T,\textbf{X}_j)} &#x3D; \textcolor{green}{(R\textbf{X}_j+  T)}$</p>
+<p>It aims at minimizing the <code>reprojection error</code> between the observed 2D coordinates $\tilde{\textbf{x}_i}^j$ and the projected 3D coordinate $\textbf{X}_j (w.r.t camera 1)$. Here $\pi(R,T,\textbf{X}_j)$ denotes the perspective projection of $\textbf{X}_j$ after rotation and translation.</p>
+<p>For the general case of <code>m images</code>, we get:</p>
+<p>$$<br>\textbf{E}({R_i, T_i}_{i&#x3D;1,…,m}, {\textbf{X}_j}_{j&#x3D;1,…,N}) &#x3D; \textcolor{green}{\sum_{i&#x3D;1}^m}\sum_{j&#x3D;1}^N\theta_{ij}|\tilde{\textbf{x}_i^j} - \pi(R_i, T_i, \textbf{X}_j)|^2,<br>$$</p>
+<p>with $T_i&#x3D;0$ and $R_1&#x3D;I.$ $\textcolor{green}{\theta_{ij}&#x3D;1}$ <code>if point</code>$\textcolor{green}{j}$ <code>is visible in image </code> $\textcolor{green}{i, \theta_{ij}&#x3D;0} $ <code>else</code>. The above problems are <code>non-convex</code>.</p>
+<h2 id="7-4-Different-Parameterizations-of-the-Problem"><a href="#7-4-Different-Parameterizations-of-the-Problem" class="headerlink" title="7.4 Different Parameterizations of the Problem"></a>7.4 Different Parameterizations of the Problem</h2><p>The same optimization problem can be parameterized differently. For example, we can introduce $\textcolor{green}{\textbf{x}_i^j}$ to denote the <code>true 2D coordinate</code> associated with the measured coordinate $\textcolor{green}{\tilde{\textbf{x}}_i^j}$:</p>
+<p>$$<br>\textbf{E}({\textbf{x}_1^j, \lambda_1^j}_{j&#x3D;1,…,N}, R, T) &#x3D; \sum_{j&#x3D;1}^N||\textbf{x}_1^j - \tilde{\textbf{x}}_1^j||^2 + ||\tilde{\textbf{x}}_2^j-\pi(R\lambda_1^j \textbf{x}_1^j+T)||^2.<br>$$</p>
+<p>Alternatively, we can perform a <code>constrained optimization</code> by minimizing a cost function (similarity to measurements):</p>
+<p>$$<br>\textbf{E}({\textbf{x}_i^j}_{j&#x3D;1,…,N}, R, T) &#x3D; \sum_{j&#x3D;1}^N\sum_{i&#x3D;1}^2 ||\textbf{x}_i^j - \tilde{\textbf{x}}_i^j||^2<br>$$</p>
+<p>subject to (consistent geometry):</p>
+<p>$$<br>\textbf{x}_2^{j\top}\hat{T}R\textbf{x}_1^j&#x3D;0, \quad \textbf{x}_1^{j\top}e_3&#x3D;1, \textbf{x}_2^{j\top}e_3 &#x3D; 1, \quad j&#x3D;1,…,N.<br>$$</p>
+<p>(Note: 如果把cost function放松成上面这个及其简单的样子，就需要进行带约束的优化，要把对极约束，齐次坐标第三个元素为1这些约束考虑进去。还有一点要注意, 无约束的bundle adjustment cost function是non-convex的，而被极大简化的带约束的cost function虽然是convex的，但他的约束里面的对极约束项在$R, T$都未知的情况下，展开后是non-convex的，因此上面这个看似被简化的cost function其实一点都不好优化,属于人嫌鬼不要。)<br>(Note: 真正实操时，我们还是最喜欢用无约束的cost function，上一节和这一节的bundle adjustment都喜欢用无约束的形式。同时，我们会把motion部分的rotation用李代数表示，即通过$\textcolor{green}{R&#x3D;exp(\hat{\omega})}$的表示形式，我们可以将rotation紧凑的表示成一个三维的向量$\textcolor{green}{\omega\in so(3)}$,然后对其进行无约束优化就好啦。)</p>
+<h2 id="7-5-Some-Comments-on-Bundle-Adjustment"><a href="#7-5-Some-Comments-on-Bundle-Adjustment" class="headerlink" title="7.5 Some Comments on Bundle Adjustment"></a>7.5 Some Comments on Bundle Adjustment</h2><p>Bundle adjustment aims at jointly estimating 3D coordinates of points and camera parameters - typically the rigid body motion, but sometimes also intrinsic calibration parameters or radial distortion. Different models of the noise in the onserved 2D points leads to different cost functions, zero-mean Gaussian noise being the most common assumption.</p>
+<p>The approach is called <code>bundle adjustment</code> because it aims at adjusting the bundles of light emitted from the 3D points. Originally derived in the field of photogrammetry in the 1950s, it is now used frequently in computer vision. A good overview can be found in:<br><code>Triggs, McLauchlan, Hartley, Fitzgibbon, “Bundle Adjustment – A Modern Synthesis”, ICCV Workshop 1999.</code><br>Typically it is used as the <code>last step in a reconstruction pipeline</code> because the minimization of this highly non-convex cost function requires a good initialization. The minimization of <code>non-convex energies</code> is a challenging problem. Bundle adjustment type cost functions are typically minimized by <code>nonlinear least squares algorithms</code>.</p>
+<h2 id="7-6-Nonlinear-Programming"><a href="#7-6-Nonlinear-Programming" class="headerlink" title="7.6 Nonlinear Programming"></a>7.6 Nonlinear Programming</h2><p><code>Nonlinear programming</code> denotes the process of iteratively solving a nonlinear optimization problem, i.e. a  problem involving the maximization of an objective function over a set of real variables under a set of equality or inequality constraints.</p>
+<p>There are numerous methods and techniques. Good overviews of respective methods can be found for example in<code>Bersekas (1999) “Nonlinear Programming”, Nocedal &amp; Wright (1999), “Numerical Optimization”</code>or <code>Luenberger &amp; Ye (2008), “Linear and nonlinear programming”.</code></p>
+<p>Depending on the cost function, different algorithms are employed. In the following, we will discuss <code>(nonlinear) least squares estimation</code> and several popular <code>iterative techniques for nonlinear optimization</code>:</p>
+<ul>
+<li>the gradient descent</li>
+<li>Newton methods</li>
+<li>the Gauss-Newton algorithm</li>
+<li>the Levenberg-Marquardt algorithm</li>
+</ul>
+<h2 id="7-7-Gradient-Descent"><a href="#7-7-Gradient-Descent" class="headerlink" title="7.7 Gradient Descent"></a>7.7 Gradient Descent</h2><p><code>Gradient Descent</code> or steepest descent is a first-order optimization method. It aims at computing a <code>local minimum</code> of a (generally) non-convex cost function by iteratively stepping in the direction in which the energy decreases most. This is given by the <code>negative energy gradient</code>.</p>
+<p>To minimize a real-valued cost $E:\mathbb{R}^n\rightarrow \mathbb{R}$, the <code>gradient flow</code> for $E(x)$ is defined by the differential equation:</p>
+<p>$$<br>\begin{cases}<br>    x(0)&#x3D;x_0 \\<br>    \frac{dx}{dt} &#x3D; \frac{dE}{dx}(x)<br>\end{cases}<br>$$<br>Discretization: $x_{k+1} &#x3D; x_k -\epsilon\frac{dE}{dx}(x_k), \quad k&#x3D;0,1,2,…$</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Wastoon/myPicGo/img/78aab6ee9488b4ba0f28003239959717.png"></p>
+<p>Under certain conditions on $E(x)$, the <code>gradient descent iteration</code>:</p>
+<p>$$<br>x_{k+1} &#x3D; x_k - \epsilon \frac{dE}{dx}(x_k), \quad k&#x3D;0,1,2…<br>$$</p>
+<p>converges to a <code>local minimum</code>. For the case of <code>concex</code> $E$, this will also be the <code>global minimum</code>. The <code>step size</code> $\epsilon$ can be chosen differentlyin each iteration.</p>
+<p>Gradient descent is a <code>popular and broadly applicable method</code>. It is typically not the fastest solution to compute minimizers because the <code>asymptotic convergences  rate is often inferior</code> to that of more specialized algorithms. First-order methods with optimal convergence rates were pioneered by <code>Yuri Nesterov</code>.</p>
+<p>In particular, highly anisotropic cost functions (with strongly different curvatures in different directioons) requires <code>many iterations</code> and trajectories tends to zig-zag. Locally optimal step sizes in each iteration can be computed by <code>line search</code>. For specific cost functions, alternative techniques such as the <code>conjugate gradient method, Newton methods</code>, or the <code>BFGS method</code> are preferable.</p>
+<h2 id="7-8-Linear-Least-Squares-Estimation"><a href="#7-8-Linear-Least-Squares-Estimation" class="headerlink" title="7.8 Linear Least Squares Estimation"></a>7.8 Linear Least Squares Estimation</h2><p><code>Ordinary least squares</code> or <code>linear least squares</code> is a method to for estimating a set of parameters $x \in \mathbb{R}^d$ in a linear regression model. Assume for each input vector $b_i\in \mathbb{R}^d, i\in {1, …,n}$, we observe a scalar response $a_i\in \mathbb{R}$. Assume there is a linear relationship of the form:</p>
+<p>$$<br>a_i &#x3D; b_i^\top x + \eta_i<br>$$</p>
+<p>with an unknown vector $x\in \mathbb{R}^d$ and zero-mean Gaussian noise $\eta \sim \mathcal{N}(0, \mathbf{\Sigma})$ with a diagonal covariance matrix of the form $\mathbf{\Sigma }&#x3D;\sigma^2\textbf{I}_n$. <code>Maximum likelihood estimation</code> of $x$ leads to the <code>ordinary least squares</code> problem:</p>
+<p>$$<br>\min_{x}\sum_i (a_i -x^\top b_i)^2 &#x3D; (a-\textbf{B}x)^\top(a-\textbf{B}x).<br>$$</p>
+<p>Linear least squares estimation was introduced by <code>Legendre (1805)</code> and <code>Gauss (1795/1809)</code>. When asking for which noise distribution the optimal estimator was the arithmetic mean, Gauss invented the<code> normal distribution</code>.</p>
+<p>For general $\Sigma$, we get the <code>generalized least squares</code> problem:</p>
+<p>$$<br>\min_{x} (a-\textbf{B}x)^\top \mathbf{\Sigma}^{-1}(a-\textbf{B}x).<br>$$</p>
+<p>This is a quadratic cost function with positive definite $\mathbf{\Sigma^{-1}}$. It has the <code>closed-form solution</code>:</p>
+<p>$$<br>\hat{x} &#x3D; \underset{x}{argmin} (a-\textbf{B}x)^\top \mathbf{\Sigma}^{-1}(a-\textbf{B}x) \&#x3D;(\textbf{B}^\top \mathbf{\Sigma}^{-1}\textbf{B})^{-1}\textbf{B}^\top\mathbf{\Sigma}^{-1}a.<br>$$</p>
+<p>If there is no correlation among the observed variances, then the matrix $\mathbf{\Sigma}$ is diagonal. This case is referred to as <code>weighted least squares</code>:</p>
+<p>$$<br>\min_x \sum_i w_i(a_i -x^\top b_i)^2, \quad with \ w_i&#x3D;\sigma_i^{-2}.<br>$$</p>
+<p>For the case of unknown matrix $\mathbf{\Sigma}$, there exist iterative estimation algorithm such as <code>feasible generalized least squares</code> or <code>iteratively reweighted least squares</code>.</p>
+<h2 id="7-9-Iteratively-Reweighted-Least-Squares"><a href="#7-9-Iteratively-Reweighted-Least-Squares" class="headerlink" title="7.9 Iteratively Reweighted Least Squares"></a>7.9 Iteratively Reweighted Least Squares</h2><p>The method of <code>iteratively reweighted least squares</code> aims at minimizing generally non-convex optimization problems if the form:</p>
+<p>$$<br>\min_x \sum_i w_i(x)|a_i - f_i(x)|^2,<br>$$</p>
+<p>with some <code>known weighting function</code> $\textcolor{green}{w_i(x)}$. A solution is obtained by iterating the following problem:<br>$$<br>x_{t+1} &#x3D; \underset{x}{argmax} \sum_i w_i(x_t)|a_i - f_i(x)|^2.<br>$$<br>For the case that $f_i$ is linear, i.e. $f_i(x)&#x3D;x^\top b_i$, each subproblem:</p>
+<p>$$<br>x_{t+1} &#x3D; \underset{x}{argmax} \sum_i w_i(x_t)|a_i - x^\top b_i|^2<br>$$</p>
+<p>is simply a <code>weighted least squares problem</code> that can be solved in closed form. Nevertheless, this iterative approach will generally not converge to a global minimum of the original (non-convex) problem.</p>
+<h2 id="7-10-Nonlinear-Least-Squares-Estimation"><a href="#7-10-Nonlinear-Least-Squares-Estimation" class="headerlink" title="7.10 Nonlinear Least Squares Estimation"></a>7.10 Nonlinear Least Squares Estimation</h2><p><code>Nonlinear Least squares estimation</code> aims at fitting observations $(a_i, b_i)$ with a nonlinear model of the form $a_i\approx f(b_i, x)$ for some function $f$ parameterized with an unknown vector $x\in \mathbb{R}^d$. Minimizing the sum of squares error:</p>
+<p>$$<br>\min_x \sum_i r_i(x)^2, \quad with \ r_i(x) &#x3D; a_i - f(b_i, x),<br>$$</p>
+<p>is generally a <code>non-convex optimization problem</code> (因为函数f是非线性函数).</p>
+<p>The optimality condition is given by:</p>
+<p>$$<br>\sum_i r_i \frac{\partial r_i}{\partial x_j} &#x3D; 0, \quad \forall j\in {1,…,d}.<br>$$</p>
+<p>Typically one cannot directly solve these equation. Yet, there exist iterative algorithms for computing approximates solutions, including <code>Netwon methods</code>, the <code>Gauss-Netwon algorithm</code> and the <code>Levenberg-Marquardt algorithm</code>.</p>
+<h2 id="7-11-Newton-Methods-for-Optimization"><a href="#7-11-Newton-Methods-for-Optimization" class="headerlink" title="7.11 Newton Methods for Optimization"></a>7.11 Newton Methods for Optimization</h2><p>Netwon methods are <code>second order methods</code>: In constrast to first-order methods like gradient descent, they also make use of second derivatives. Geometrically, Netwon method iteratively approximately the cost function $E(x)$ quadratically and takes a step to the minimizer of this approximation.</p>
+<p>Let $x_t$ be the estimated solution after $t$ iterations. Then the Talyor approximation of $E(x)$ in the vincinity of this estimate is:</p>
+<p>$$<br>E(x) &#x3D; E(x_t) + g^\top(x-x_t) + \frac{1}{2}(x-x_t)^\top \textbf{H}(x-x_t).<br>$$</p>
+<p>The first and second derivative are denoted by the <code>Jacobian</code> $\textcolor{green}{g&#x3D;\frac{dE}{dx}(x_t)}$ and the <code>Hessian matrix</code> $\textcolor{green}{\frac{d^2 E}{dx^2}(x_t)}$. For this second-order approximation, the optimality condition is:</p>
+<p>$$<br>\frac{dE}{dx} &#x3D; g + \textbf{H}(x-x_t) &#x3D; 0<br>$$</p>
+<p>Setting the next iterate to the minimizer $x$ leads to:</p>
+<p>$$<br>x_{t+1} &#x3D; x_t - \textbf{H}^{-1}g.<br>$$</p>
+<p>In practice, one often choses a more conservative step size $\gamma \in (0, 1)$:</p>
+<p>$$<br>x_{t+1} &#x3D; x_t -\gamma \textbf{H}^{-1}g.<br>$$</p>
+<p>When applicable, second-order methods are often faster than first-order methods, as least when measured in number of iterations. In particular, there exists a local neighborhood around each optimum where the Newton method converges quadratically for $\gamma &#x3D; 1$ (if the Hessian is invertible and Lipschitz continuous).</p>
+<p>For <code>large optimization problems</code>, computing and inverting the Hessian may be challenging. Moreover, since this problem is often not parallelizable, some second order methods do not profit from GPU acceleration. In such cases, one can aim to <code>iteratively solve the extremality condition (*)</code>.</p>
+<p>In case that $\textbf{H}$ is not positive definite, there exist <code>quasi-Newton methods</code> which aim at approximating $\textbf{H}$ or $\textbf{H}^{-1}$ with a positive definite matrix.</p>
+<h2 id="7-12-The-Gauss-Newton-Algorithm"><a href="#7-12-The-Gauss-Newton-Algorithm" class="headerlink" title="7.12 The Gauss-Newton Algorithm"></a>7.12 The Gauss-Newton Algorithm</h2><p>The Gauss-Newton algorithm is a <code>method to solve non-linear least-squares problems</code> of the form:</p>
+<p>$$<br>\min _x \sum_i r_i(x)^2.<br>$$</p>
+<p>It can be derived as <code>an approximation to the Newton method</code>. The latter iterates:</p>
+<p>$$<br>x_{t+1} &#x3D; x_t - \textbf{H}^{-1}g.<br>$$</p>
+<p>with the gradient $g$:</p>
+<p>$$<br>g_j &#x3D; 2\sum_i r_i\frac{\partial r_i}{\partial x_j},<br>$$</p>
+<p>and the Hessian $\textbf{H}$:</p>
+<p>$$<br>H_{jk} &#x3D; 2\sum_i (\frac{\partial r_i}{\partial x_j}\frac{\partial r_i}{\partial x_k} + r_i\frac{\partial^2 r_i}{\partial x_j \partial x_k}).<br>$$</p>
+<p>Dropping the second order term leads to the <code>approximation</code>:</p>
+<p>$$<br>H_{jk} \approx 2 \sum_i J_{ij}J_{ik}, \quad with \ J_{ij} &#x3D; \frac{\partial r_i}{\partial x_j}. (当我们假设误差函数near linear时，用近似的H才会有比较好的效果。)<br>$$</p>
+<p>The approximation:</p>
+<p>$$<br>\textbf{H} \approx 2J^\top J, \ with  \ the \ Jacobin \textbf{J} &#x3D; \frac{dr}{dx},<br>$$</p>
+<p>together with $g &#x3D; \textbf{J}^\top r$, leads to the <code>Gauss-Netwon algorithm</code>:</p>
+<p>$$<br>x_{t+1} &#x3D; x_t + \bigtriangleup, \quad with \ \bigtriangleup &#x3D; -(\textbf{J}^\top \textbf{J})^-1\textbf{J}^\top r<br>$$</p>
+<p>In contrast to the Newton algorithm, the Gauss-Newton algorithm <code>does not require the computation of second derivatives</code>. Moreover, the above approxamation of the Hessian is by construction <code>positive definite</code>.</p>
+<p>This approximation of the Hessian is valid if:</p>
+<p>$$<br>|r_i\frac{\partial ^2 r_i}{\partial x_j \partial x_k}| \ll |\frac{\partial r_i}{\partial x_j}\frac{\partial r_i}{\partial x_k}|,<br>$$</p>
+<p>This is the case if the <code>residuum</code> $r_i$ <code>is small</code> or if it is <code>close to linear</code> (in which case the second derivatives are small).</p>
+<h2 id="7-13-The-Levenberg-Marquardt-Algorithm"><a href="#7-13-The-Levenberg-Marquardt-Algorithm" class="headerlink" title="7.13 The Levenberg-Marquardt Algorithm"></a>7.13 The Levenberg-Marquardt Algorithm</h2><p>The Newton algorirhm:</p>
+<p>$$<br>x_{t+1} &#x3D; x_t - \textbf{H}^{-1}g,<br>$$</p>
+<p>can be modified (damped):</p>
+<p>$$<br>x_{t+1} &#x3D; x_t - (\textbf{H}+ \lambda \textbf{I}_n)^{-1}g,<br>$$</p>
+<p>to create a hybrid between the <code>Netwon method</code> $\textcolor{green}{\lambda&#x3D;0}$ and a <code>gradient method </code> with step size $\frac{1}{\lambda}$ (for $\textcolor{green}{\lambda \rightarrow \infty}$).</p>
+<p>In the same manner, <code>Levenberg (1944)</code> suggested to <code>damp the Gauss-Newton algorithm</code> for nonlinear least squares:</p>
+<p>$$<br>x_{t+1} &#x3D; x_t + \bigtriangleup, \quad with \ \bigtriangleup&#x3D;-(\textbf{J}^\top \textbf{J} + \lambda \textbf{I}_n)^{-1}\textbf{J}^\top r.<br>$$</p>
+<p><code>Marquardt (1963)</code> suggested a more <code>adaptive component-wise damping </code> of the form:</p>
+<p>$$<br>\bigtriangleup &#x3D; -(\textbf{J}^\top \textbf{J} + \lambda diag(\textbf{J}^\top \textbf{J}))^{-1}\textbf{J}^\top r,<br>$$</p>
+<p>which avoids slow convergence in directions of small gradient.</p>
+<h2 id="7-14-Summary"><a href="#7-14-Summary" class="headerlink" title="7.14 Summary"></a>7.14 Summary</h2><p><code>Bundle adjustment</code> was pioneered in the 1950s as a technique for structure and motion estimation in noisy real-world conditions. It aims at estimating the locations of $N$ 3D points $\textbf{X}_j$ and camera motions $(R_i, T_i)$, given noisy 2D projections ${\tilde{\textbf{x}}_i^j}$ in $m$ images.</p>
+<p>The assumation of zero-mean Gaussian noise on the 2D observations leads to the <code>weighted nonlinear least squares problem</code>:</p>
+<p>$$<br>E({R_i, T_i}_{i&#x3D;1,…,m}, {\textbf{X}_j}_{j&#x3D;1,…,N}) &#x3D; \textcolor{green}{\sum_{i&#x3D;1}^m}\sum_{j&#x3D;1}^N \theta_{ij}|{\tilde{\textbf{x}}}_i^j - \pi(R_i,T_i, \textbf{X}_j)|^2,<br>$$</p>
+<p>with $\textcolor{green}{\theta_{ij}&#x3D;1}$ if point $j$ is visible in image $i$, $\theta_{ij}&#x3D;0$ else.</p>
+<p>Solutions of this non-convex problem can be computed by various iterative algorithms, most importantly a damped version of the Gauss-Newton algorithm called <code>Levenberg-Marquardt algorithm</code>. Bundle adjustment is typically initialized by an algorithm such as the 8-point or 5-point algorithm. </p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">KMnO4</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://wastoon.github.io/2022/03/16/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%83%EF%BC%89/">https://wastoon.github.io/2022/03/16/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%83%EF%BC%89/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://wastoon.github.io" target="_blank">KMnO4的行云小扎</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/">计算机视觉</a><a class="post-meta__tags" href="/tags/SFM/">SFM</a></div><div class="post_share"><div class="social-share" data-image="/img/MVG-7-cover.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button button--animated"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.png" target="_blank"><img class="post-qr-code-img" src="/img/wechat.png" alt="wechat"/></a><div class="post-qr-code-desc">wechat</div></li><li class="reward-item"><a href="/img/alipay.png" target="_blank"><img class="post-qr-code-img" src="/img/alipay.png" alt="alipay"/></a><div class="post-qr-code-desc">alipay</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2022/03/09/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%85%AD%EF%BC%89/"><img class="next-cover" src="/img/MVG-5-cover.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">多视图几何（六）</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/02/21/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%80%EF%BC%89/" title="MVG-多视图几何（一）"><img class="cover" src="/img/MVG-1-cover.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-21</div><div class="title">MVG-多视图几何（一）</div></div></a></div><div><a href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%89%EF%BC%89/" title="多视图几何（三）"><img class="cover" src="/img/MVG-3-cover.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-23</div><div class="title">多视图几何（三）</div></div></a></div><div><a href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%8C%EF%BC%89/" title="多视图几何（二）"><img class="cover" src="/img/MVG-2-cover.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-23</div><div class="title">多视图几何（二）</div></div></a></div><div><a href="/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%94%EF%BC%89/" title="多视图几何（五）"><img class="cover" src="/img/MVG-5-cover.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-28</div><div class="title">多视图几何（五）</div></div></a></div><div><a href="/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%9B%9B%EF%BC%89/" title="多视图几何（四）"><img class="cover" src="/img/MVG-4-cover.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-28</div><div class="title">多视图几何（四）</div></div></a></div><div><a href="/2022/03/09/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%85%AD%EF%BC%89/" title="多视图几何（六）"><img class="cover" src="/img/MVG-5-cover.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-03-09</div><div class="title">多视图几何（六）</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">KMnO4</div><div class="author-info__description">西安交通大学硕士（CV，3D人体姿态估计，动作生成）</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">10</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Wastoon"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/Wastoon" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="/mengrongye@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">Everything is the meaning of life.<div class="twopeople"><div class="twopeople"><div class="container"style="height:200px;"><canvas class="illo"width="800"height="800"style="max-width: 200px; max-height: 200px; touch-action: none; width: 640px; height: 640px;"></canvas></div><script src="https://cdn.jsdelivr.net/gh/Justlovesmile/CDN/js/twopeople1.js"></script><script src="https://cdn.jsdelivr.net/gh/Justlovesmile/CDN/js/zdog.dist.js"></script><script id="rendered-js"src="https://cdn.jsdelivr.net/gh/Justlovesmile/CDN/js/twopeople.js"></script><style>.twopeople{margin:0;align-items:center;justify-content:center;text-align:center}canvas{display:block;margin:0 auto;cursor:move}</style></div></div></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Chapter7-Bundle-Adjustment-amp-Nonlinear-Optimization"><span class="toc-number">1.</span> <span class="toc-text">Chapter7 Bundle Adjustment &amp; Nonlinear Optimization</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#7-1-Optimality-in-Noisy-Real-World-Conditions"><span class="toc-number">1.1.</span> <span class="toc-text">7.1 Optimality in Noisy Real World Conditions</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-2-Statistical-Approaches-to-Cope-with-Noise"><span class="toc-number">1.2.</span> <span class="toc-text">7.2 Statistical Approaches to Cope with Noise</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-3-Bundle-Adjustment-and-Nonlinear-Optimization"><span class="toc-number">1.3.</span> <span class="toc-text">7.3 Bundle Adjustment and Nonlinear Optimization</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-4-Different-Parameterizations-of-the-Problem"><span class="toc-number">1.4.</span> <span class="toc-text">7.4 Different Parameterizations of the Problem</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-5-Some-Comments-on-Bundle-Adjustment"><span class="toc-number">1.5.</span> <span class="toc-text">7.5 Some Comments on Bundle Adjustment</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-6-Nonlinear-Programming"><span class="toc-number">1.6.</span> <span class="toc-text">7.6 Nonlinear Programming</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-7-Gradient-Descent"><span class="toc-number">1.7.</span> <span class="toc-text">7.7 Gradient Descent</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-8-Linear-Least-Squares-Estimation"><span class="toc-number">1.8.</span> <span class="toc-text">7.8 Linear Least Squares Estimation</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-9-Iteratively-Reweighted-Least-Squares"><span class="toc-number">1.9.</span> <span class="toc-text">7.9 Iteratively Reweighted Least Squares</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-10-Nonlinear-Least-Squares-Estimation"><span class="toc-number">1.10.</span> <span class="toc-text">7.10 Nonlinear Least Squares Estimation</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-11-Newton-Methods-for-Optimization"><span class="toc-number">1.11.</span> <span class="toc-text">7.11 Newton Methods for Optimization</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-12-The-Gauss-Newton-Algorithm"><span class="toc-number">1.12.</span> <span class="toc-text">7.12 The Gauss-Newton Algorithm</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-13-The-Levenberg-Marquardt-Algorithm"><span class="toc-number">1.13.</span> <span class="toc-text">7.13 The Levenberg-Marquardt Algorithm</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-14-Summary"><span class="toc-number">1.14.</span> <span class="toc-text">7.14 Summary</span></a></li></ol></li></ol></div></div><div class="card-widget card-weibo"><div class="card-content"><div class="item-headline"><i class="fab fa-weibo"></i><span>微博热搜</span></div><div id="weibo-container" style="width: 100%; height: 150px;font-size: 95%;"></div></div></div><script defer="defer" data-pjax="data-pjax" src="/js/card_weibo.js"></script><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/03/16/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%83%EF%BC%89/" title="多视图几何（七）"><img src="/img/MVG-7-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="多视图几何（七）"/></a><div class="content"><a class="title" href="/2022/03/16/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%83%EF%BC%89/" title="多视图几何（七）">多视图几何（七）</a><time datetime="2022-03-16T11:44:07.000Z" title="发表于 2022-03-16 19:44:07">2022-03-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/03/09/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%85%AD%EF%BC%89/" title="多视图几何（六）"><img src="/img/MVG-5-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="多视图几何（六）"/></a><div class="content"><a class="title" href="/2022/03/09/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%85%AD%EF%BC%89/" title="多视图几何（六）">多视图几何（六）</a><time datetime="2022-03-09T08:15:24.000Z" title="发表于 2022-03-09 16:15:24">2022-03-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%94%EF%BC%89/" title="多视图几何（五）"><img src="/img/MVG-5-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="多视图几何（五）"/></a><div class="content"><a class="title" href="/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%94%EF%BC%89/" title="多视图几何（五）">多视图几何（五）</a><time datetime="2022-02-28T07:02:52.000Z" title="发表于 2022-02-28 15:02:52">2022-02-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%9B%9B%EF%BC%89/" title="多视图几何（四）"><img src="/img/MVG-4-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="多视图几何（四）"/></a><div class="content"><a class="title" href="/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%9B%9B%EF%BC%89/" title="多视图几何（四）">多视图几何（四）</a><time datetime="2022-02-28T06:43:44.000Z" title="发表于 2022-02-28 14:43:44">2022-02-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%89%EF%BC%89/" title="多视图几何（三）"><img src="/img/MVG-3-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="多视图几何（三）"/></a><div class="content"><a class="title" href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%89%EF%BC%89/" title="多视图几何（三）">多视图几何（三）</a><time datetime="2022-02-23T11:44:57.000Z" title="发表于 2022-02-23 19:44:57">2022-02-23</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/MVG-7-cover.png')"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By KMnO4</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font-plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font-minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"><script>if (!window.MathJax) {
+  window.MathJax = {
+    tex: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"]],
+      tags: 'ams'
+    },
+    chtml: {
+      scale: 1.2
+    },
+    options: {
+      renderActions: {
+        findScript: [10, doc => {
+          for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+            const display = !!node.type.match(/; *mode=display/)
+            const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+            const text = document.createTextNode('')
+            node.parentNode.replaceChild(text, node)
+            math.start = {node: text, delim: '', n: 0}
+            math.end = {node: text, delim: '', n: 0}
+            doc.math.push(math)
+          }
+        }, ''],
+        insertScript: [200, () => {
+          document.querySelectorAll('mjx-container:not\([display]\)').forEach(node => {
+            const target = node.parentNode
+            if (target.nodeName.toLowerCase() === 'li') {
+              target.parentNode.classList.add('has-jax')
+            } else {
+              target.classList.add('has-jax')
+            }
+          });
+        }, '', false]
+      }
+    }
+  }
+  
+  const script = document.createElement('script')
+  script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js'
+  script.id = 'MathJax-script'
+  script.async = true
+  document.head.appendChild(script)
+} else {
+  MathJax.startup.document.state(0)
+  MathJax.texReset()
+  MathJax.typeset()
+}</script><script>function addGitalkSource () {
+  const ele = document.createElement('link')
+  ele.rel = 'stylesheet'
+  ele.href= 'https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css'
+  document.getElementsByTagName('head')[0].appendChild(ele)
+}
+
+function loadGitalk () {
+  function initGitalk () {
+    var gitalk = new Gitalk(Object.assign({
+      clientID: '60cf579829afb2b2cdf9',
+      clientSecret: '991dfac32f5e2bd0470bd4b8f5b8a2ef54e9b164',
+      repo: 'Wastoon.github.io',
+      owner: 'Wastoon',
+      admin: ['Wastoon'],
+      id: '8843b6ab2c4212eb28cac02aff5f71b8',
+      language: 'zh-CN',
+      perPage: 10,
+      distractionFreeMode: false,
+      pagerDirection: 'last',
+      createIssueManually: true,
+      updateCountCallback: commentCount
+    },false))
+
+    gitalk.render('gitalk-container')
+  }
+
+  if (typeof Gitalk === 'function') initGitalk()
+  else {
+    addGitalkSource()
+    getScript('https://cdn.jsdelivr.net/npm/gitalk@latest/dist/gitalk.min.js').then(initGitalk)
+  }
+}
+
+function commentCount(n){
+  let isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+  if (isCommentCount) {
+    isCommentCount.innerHTML= n
+  }
+}
+
+if ('Gitalk' === 'Gitalk' || !true) {
+  if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+  else loadGitalk()
+} else {
+  function loadOtherComment () {
+    loadGitalk()
+  }
+}</script></div><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="true"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-show-text.min.js" data-mobile="false" data-text="I,Miss,You" data-fontsize="15px" data-random="false" async="async"></script><script>((window.gitter = {}).chat = {}).options = {
+  disableDefaultChat: true,
+};
+document.addEventListener('gitter-sidecar-ready', (e) => {
+  const GitterChat = e.detail.Chat
+  let chat
+
+  function initGitter () {
+    chat = new GitterChat({
+      room: 'OMGsitetalk/community',
+      activationElement: '#chat_btn'
+    });
+  }
+
+  initGitter()
+
+  if (false) {
+    document.addEventListener('pjax:complete', () => {
+      chat.destroy()
+      initGitter()
+    })
+  }
+
+})</script><script src="https://sidecar.gitter.im/dist/sidecar.v1.js" async="async" defer="defer"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_clock_injector_config(){
+    var parent_div_git = document.getElementsByClassName('sticky_layout')[0];
+    var item_html = '<div class="card-widget card-clock"><div class="card-glass"><div class="card-background"><div class="card-content"><div id="hexo_electric_clock"><img class="entered loading" id="card-clock-loading" src="https://cdn.jsdelivr.net/gh/tzy13755126023/BLOG_SOURCE/theme_f/loading.gif" style="height: 120px; width: 100%;" data-ll-status="loading"/></div></div></div></div></div>';
+    console.log('已挂载butterfly_clock')
+    parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+    }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var flag = 0;
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_clock_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_clock_injector_config();
+  }
+  </script><script src="https://pv.sohu.com/cityjson?ie=utf-8"></script><script data-pjax src="https://cdn.jsdelivr.net/npm/hexo-butterfly-clock/lib/clock.min.js"></script><script async src="//at.alicdn.com/t/font_2032782_8d5kxvn09md.js"></script><script data-pjax src="https://cdn.jsdelivr.net/npm/hexo-filter-gitcalendar/lib/gitcalendar.js"></script><script data-pjax>
+                        function gitcalendar_injector_config(){
+                          var parent_div_git = document.getElementById('recent-posts');
+                          var item_html = '<div class="recent-post-item" style="width:100%;height:auto;padding:10px;"><style>#git_container{min-height: 280px}@media screen and (max-width:650px) {#git_container{min-height: 0px}}</style><div id="git_loading" style="width:10%;height:100%;margin:0 auto;display: block;"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 50 50" style="enable-background:new 0 0 50 50" xml:space="preserve"><path fill="#d0d0d0" d="M25.251,6.461c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615V6.461z" transform="rotate(275.098 25 25)"><animatetransform attributeType="xml" attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="0.6s" repeatCount="indefinite"></animatetransform></path></svg><style>#git_container{display: none;}</style></div><div id="git_container"></div></div>';
+                          parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+                          console.log('已挂载gitcalendar')
+                          }
+
+                        if( document.getElementById('recent-posts') && (location.pathname ==='/'|| '/' ==='all')){
+                            gitcalendar_injector_config()
+                            GitCalendarInit("https://gitcalendar.akilar.top/api?Wastoon",['#ebedf0', '#fdcdec', '#fc9bd9', '#fa6ac5', '#f838b2', '#f5089f', '#c4067e', '#92055e', '#540336', '#48022f', '#30021f'],'Wastoon')
+                        }
+                      </script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>
