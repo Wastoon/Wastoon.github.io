@@ -1,0 +1,350 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>多视图几何（八） | KMnO4的行云小扎</title><meta name="keywords" content="计算机视觉,SFM"><meta name="author" content="KMnO4"><meta name="copyright" content="KMnO4"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Chapter8 Direct Approaches to Visual SLAM8.1 Classical Approaches to Multiple View ReconstructionIn the past chapters we have studied classical approaches to multiple view reconstruction. These method">
+<meta property="og:type" content="article">
+<meta property="og:title" content="多视图几何（八）">
+<meta property="og:url" content="https://wastoon.github.io/2022/03/22/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%85%AB%EF%BC%89/index.html">
+<meta property="og:site_name" content="KMnO4的行云小扎">
+<meta property="og:description" content="Chapter8 Direct Approaches to Visual SLAM8.1 Classical Approaches to Multiple View ReconstructionIn the past chapters we have studied classical approaches to multiple view reconstruction. These method">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://wastoon.github.io/img/MVG-8-cover.png">
+<meta property="article:published_time" content="2022-03-22T13:26:10.000Z">
+<meta property="article:modified_time" content="2022-03-22T13:49:17.108Z">
+<meta property="article:author" content="KMnO4">
+<meta property="article:tag" content="计算机视觉">
+<meta property="article:tag" content="SFM">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://wastoon.github.io/img/MVG-8-cover.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://wastoon.github.io/2022/03/22/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%85%AB%EF%BC%89/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><meta/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '多视图几何（八）',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-03-22 21:49:17'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const fontSizeVal = saveToLocal.get('global-font-size')
+    if (fontSizeVal !== undefined) {
+      document.documentElement.style.setProperty('--global-font-size', fontSizeVal + 'px')
+    }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-butterfly-clock/lib/clock.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/l-lin/font-awesome-animation/dist/font-awesome-animation.min.css" media="defer" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-butterfly-tag-plugins-plus@latest/lib/tag_plugins.min.css" media="defer" onload="this.media='all'"><script async src="https://cdn.jsdelivr.net/npm/hexo-butterfly-tag-plugins-plus@latest/lib/carousel-touch.min.js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-filter-gitcalendar/lib/gitcalendar.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/icon.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">11</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 网站统计</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 自留地</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 吉他谱</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> Movie</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 嗑盐&amp;摸鱼</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 文献</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 经典开源项目</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 个人项目</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/MVG-8-cover.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">KMnO4的行云小扎</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 网站统计</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 自留地</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 吉他谱</span></a></li><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> Movie</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 嗑盐&amp;摸鱼</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 文献</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 经典开源项目</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 个人项目</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">多视图几何（八）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-03-22T13:26:10.000Z" title="发表于 2022-03-22 21:26:10">2022-03-22</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-03-22T13:49:17.108Z" title="更新于 2022-03-22 21:49:17">2022-03-22</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/">计算机视觉</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/SFM/">SFM</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>6分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="多视图几何（八）"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="Chapter8-Direct-Approaches-to-Visual-SLAM"><a href="#Chapter8-Direct-Approaches-to-Visual-SLAM" class="headerlink" title="Chapter8 Direct Approaches to Visual SLAM"></a>Chapter8 Direct Approaches to Visual SLAM</h1><h2 id="8-1-Classical-Approaches-to-Multiple-View-Reconstruction"><a href="#8-1-Classical-Approaches-to-Multiple-View-Reconstruction" class="headerlink" title="8.1 Classical Approaches to Multiple View Reconstruction"></a>8.1 Classical Approaches to Multiple View Reconstruction</h2><p>In the past chapters we have studied <code>classical approaches to multiple view reconstruction</code>. These methods tackle the problem of structure and motion estimation (or visual SLAM) in several steps:</p>
+<ul>
+<li>A set of <code>feature points</code> is extracted from the images -ideally points points such as <code>corners</code> which can be reliably identified in subsequent images as well.</li>
+<li>One determines a <code>correspondence of these points across the various images</code>. This can be done either through local tracking (using optical flow approaches) or by random sampling of possible partners based on a feature descriptor (SIFT, SURF, etc.) associated with each point,</li>
+<li>The <code>camera motion is estimated</code> based on a set of corresponding points. In many approaches this is done by a series of algorithms such as the <code>8-point algorithm</code> or the <code>5-point algorithm</code> followed by <code>bundle adjustment</code>.</li>
+<li>For a given camera motion one can then compute a <code>dense reconstruction</code> using photometric stereo approaches.</li>
+</ul>
+<h2 id="8-2-Shortcomings-of-Classical-Approaches"><a href="#8-2-Shortcomings-of-Classical-Approaches" class="headerlink" title="8.2 Shortcomings of Classical Approaches"></a>8.2 Shortcomings of Classical Approaches</h2><p>Such classical approaches are <code>indirect</code> in the sense that they do not compute structure and motion directly from the images but rather from a sparse set of precomputed feature points. Despite a number of successes, they have several drawbacks:</p>
+<ul>
+<li>From the point of view of statistical inference, they are <code>suboptimal</code>: In the selection of feature points much potentially valuable information contained in the colors of each images is discarded.</li>
+<li>They invariably <code>lack robustness</code>: Error in the point correspondence may have devastating effects on the estimated camera motion. Since one often selects very few point pairs only (8 points for the 8-point algorithm, 5 points for the 5-point algorithm), any incorrect correspondence will lead to an incorrect motion estimate.</li>
+<li>They do not address the <code>highly coupled problems of motion estimation and dense structure estimation</code>. They merely do so for a sparse set of points. As a consequence, improvements in the estimated dense geometry will not be used to improve the camera motion estimates.</li>
+</ul>
+<h2 id="8-3-Toward-Direct-Approaches-to-Multiview-Reconstruction"><a href="#8-3-Toward-Direct-Approaches-to-Multiview-Reconstruction" class="headerlink" title="8.3 Toward Direct Approaches to Multiview Reconstruction"></a>8.3 Toward Direct Approaches to Multiview Reconstruction</h2><p>In the last few years, researchers have been promoting <code>direct approaches to multi-view reconstruction</code>. Rather than extracting a sparse set of feature points to determine the camera motion, <code>direct methods aim at estimating camera motion and dense or semi-dense scene geometry directly from the input images</code>. This has several advantages:</p>
+<ul>
+<li>Direct methods tend to be <code>more robust</code> to noise and other nuisances because they <code>exploit all variable input information</code>.</li>
+<li>Direct methods provide a <code>semi-dense geometric reconstruction</code> of the scene which goes well beyond the sparse point cloud generated by the 8-point algorithm or bundle adjustment. Despending on the application, a separate dense reconstruction step may no longer be necessary.</li>
+<li>Direct methods are <code>typically faster</code> because the feature-point extraction and correspondence finding is omitted: They can provide fairly accurate camera motion and scene structure in real-time on a CPU.</li>
+</ul>
+<h2 id="8-4-Feature-Based-versus-Direct-Methods"><a href="#8-4-Feature-Based-versus-Direct-Methods" class="headerlink" title="8.4 Feature-Based versus Direct Methods"></a>8.4 Feature-Based versus Direct Methods</h2><p><img src="https://cdn.jsdelivr.net/gh/Wastoon/myPicGo/img/0365bb20c50dcfd2036438b8b3907fac.png"></p>
+<h2 id="8-5-Direct-Methods-for-Multi-view-Reconstruction"><a href="#8-5-Direct-Methods-for-Multi-view-Reconstruction" class="headerlink" title="8.5 Direct Methods for Multi-view Reconstruction"></a>8.5 Direct Methods for Multi-view Reconstruction</h2><p>In the following, we will briefly review several recent works on direct methods for multiple-view reconstruction:</p>
+<ul>
+<li>the method of <code>Stühmer, Gumhold, Cremers, DAGM 2010</code> computes dense geometry from a handheld camera in real-time.</li>
+<li>the methods of <code>Steinbrücker, Sturm, Cremers, 2011 and Kerl, Sturm, Cremers, 2013</code> directly compute the camera motion of an RGB-D camera.</li>
+<li>the method of<code> Newcombe, Lovegrove, Davison, ICCV 2011</code> directly determines dense geometry and camera motion from the images.</li>
+<li>the method of <code>Engel, Sturm, Cremers, ICCV 2013</code> and <code>Engel, Schöps Cremers, ECCV 2014</code> directly computes camera motion and semi-dense geometry for a handheld (monocular) camera.</li>
+<li>the method of <code>Engel, Koltun, Cremers, PAMI 2018</code> directly estimates highly accurate camera motion and sparse geometry.</li>
+</ul>
+<h2 id="8-6-Realtime-Dense-Geometry-from-a-Handheld-Cameara"><a href="#8-6-Realtime-Dense-Geometry-from-a-Handheld-Cameara" class="headerlink" title="8.6 Realtime Dense Geometry from a Handheld Cameara"></a>8.6 Realtime Dense Geometry from a Handheld Cameara</h2><p> Let $g_i \in SE(3)$ be the rigid body motion from the first camera to the $i$-th camera, and let $I_i: \Omega \rightarrow  \mathbb{R}$ be the $i$-th image. A <code>dense depth map</code> $\textcolor{green}{h: \Omega\rightarrow \mathbb{R}}$ can be computed by solving the opyimization problem:</p>
+<p> $$<br> \min_{h} \sum_{i&#x3D;2}^n \int_{\Omega} |I_1(\textbf{x}) -I_i(\pi g_i(h\textbf{x}))|d\textbf{x} + \lambda \int_{\Omega} |\bigtriangledown h|d\textbf{x},<br> $$</p>
+<p> where $\textbf{x}$ is represented in homogeneous coordinates and $h\textbf{x}$ is the corresponding 3D point.</p>
+<p> Like in optical flow estimation, the unknown depth map should be such that for all pixels $\textbf{x}\in \Omega$, the transformation into the other images $I_i$ should give rise to the same color as in the reference image $I_1$.</p>
+<p> This cost function can be minimized at framerate by <code>coarse-to-fine linearlization</code> solved in parallel on a GPU.</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Wastoon/myPicGo/img/3e98c7f4186f2f06f996f1c9e24b9cf8.png"></p>
+<h2 id="8-7-Dense-RGB-D-Tracking"><a href="#8-7-Dense-RGB-D-Tracking" class="headerlink" title="8.7 Dense RGB-D Tracking"></a>8.7 Dense RGB-D Tracking</h2><p>The approach of <code>Stühmer et al. (2010)</code> relies on a sparse feature-point based camera tracker (PTAM) and computes dense geometry directly on the images.<code> Steinbrücker, Sturm, Cremers (2011)</code> propose a complementary approach to directly compute the camera motion from RGB-D images. The idea is to compute the rigid body motion $g_\xi$ which optimally alogns two subsequent color images $I_1$ and $I_2$:</p>
+<p>$$<br>\min_{\xi \in \mathfrak{se}(3)}\int_{\Omega} |I_1(\mathrm{x}) - I_2(\pi g_\xi (hx))|^2 d\mathrm{x}<br>$$</p>
+<p><img src="https://cdn.jsdelivr.net/gh/Wastoon/myPicGo/img/9ee3312f75a6275a0ea62f8a106ee06a.png"></p>
+<p>The above non-convex problem can be approximated as a convex problem by linearizing the residuum around an initial guess $\xi_0$:(在$\xi_0$处进行一阶泰勒展开  )</p>
+<p>$$<br>E(\xi) &#x3D; \int_{\Omega}|I_1(\textbf{x}) - I_2(\pi g_{\xi_0}(h\textbf{x}))-\bigtriangledown I_2^\top(\frac{d\textcolor{red}{\pi}}{d\textcolor{green}{g_\xi}})(\frac{d\textcolor{green}{g_\xi}}{d\xi})\xi|^2 d\textbf{x}<br>$$</p>
+<p>This is a convex quadratic cost function which gives rise to a linear optimality condition:</p>
+<p>$$<br>\frac{dE(\xi)}{d\xi} &#x3D; A \xi + b &#x3D; 0<br>$$</p>
+<p>To account for larger motions of the camera, this problem is solved in a coarse-to-fine manner. The linearization of the residuum is identical with a Gauss-Newton approach. It corresponds to an approximation of the Hessian by a positive definite matrix.<br><img src="https://cdn.jsdelivr.net/gh/Wastoon/myPicGo/img/4538b341f64ddb84d8860b2a0359e607.png"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">KMnO4</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://wastoon.github.io/2022/03/22/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%85%AB%EF%BC%89/">https://wastoon.github.io/2022/03/22/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%85%AB%EF%BC%89/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://wastoon.github.io" target="_blank">KMnO4的行云小扎</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/">计算机视觉</a><a class="post-meta__tags" href="/tags/SFM/">SFM</a></div><div class="post_share"><div class="social-share" data-image="/img/MVG-8-cover.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button button--animated"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.png" target="_blank"><img class="post-qr-code-img" src="/img/wechat.png" alt="wechat"/></a><div class="post-qr-code-desc">wechat</div></li><li class="reward-item"><a href="/img/alipay.png" target="_blank"><img class="post-qr-code-img" src="/img/alipay.png" alt="alipay"/></a><div class="post-qr-code-desc">alipay</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2022/03/16/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%83%EF%BC%89/"><img class="next-cover" src="/img/MVG-7-cover.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">多视图几何（七）</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/02/21/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%80%EF%BC%89/" title="MVG-多视图几何（一）"><img class="cover" src="/img/MVG-1-cover.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-21</div><div class="title">MVG-多视图几何（一）</div></div></a></div><div><a href="/2022/03/16/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%83%EF%BC%89/" title="多视图几何（七）"><img class="cover" src="/img/MVG-7-cover.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-03-16</div><div class="title">多视图几何（七）</div></div></a></div><div><a href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%89%EF%BC%89/" title="多视图几何（三）"><img class="cover" src="/img/MVG-3-cover.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-23</div><div class="title">多视图几何（三）</div></div></a></div><div><a href="/2022/02/23/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%8C%EF%BC%89/" title="多视图几何（二）"><img class="cover" src="/img/MVG-2-cover.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-23</div><div class="title">多视图几何（二）</div></div></a></div><div><a href="/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%94%EF%BC%89/" title="多视图几何（五）"><img class="cover" src="/img/MVG-5-cover.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-28</div><div class="title">多视图几何（五）</div></div></a></div><div><a href="/2022/03/09/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%85%AD%EF%BC%89/" title="多视图几何（六）"><img class="cover" src="/img/MVG-5-cover.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-03-09</div><div class="title">多视图几何（六）</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="gitalk-container"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">KMnO4</div><div class="author-info__description">西安交通大学硕士（CV，3D人体姿态估计，动作生成）</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">11</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Wastoon"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/Wastoon" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="/mengrongye@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">Everything is the meaning of life.<div class="twopeople"><div class="twopeople"><div class="container"style="height:200px;"><canvas class="illo"width="800"height="800"style="max-width: 200px; max-height: 200px; touch-action: none; width: 640px; height: 640px;"></canvas></div><script src="https://cdn.jsdelivr.net/gh/Justlovesmile/CDN/js/twopeople1.js"></script><script src="https://cdn.jsdelivr.net/gh/Justlovesmile/CDN/js/zdog.dist.js"></script><script id="rendered-js"src="https://cdn.jsdelivr.net/gh/Justlovesmile/CDN/js/twopeople.js"></script><style>.twopeople{margin:0;align-items:center;justify-content:center;text-align:center}canvas{display:block;margin:0 auto;cursor:move}</style></div></div></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Chapter8-Direct-Approaches-to-Visual-SLAM"><span class="toc-number">1.</span> <span class="toc-text">Chapter8 Direct Approaches to Visual SLAM</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#8-1-Classical-Approaches-to-Multiple-View-Reconstruction"><span class="toc-number">1.1.</span> <span class="toc-text">8.1 Classical Approaches to Multiple View Reconstruction</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-2-Shortcomings-of-Classical-Approaches"><span class="toc-number">1.2.</span> <span class="toc-text">8.2 Shortcomings of Classical Approaches</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-3-Toward-Direct-Approaches-to-Multiview-Reconstruction"><span class="toc-number">1.3.</span> <span class="toc-text">8.3 Toward Direct Approaches to Multiview Reconstruction</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-4-Feature-Based-versus-Direct-Methods"><span class="toc-number">1.4.</span> <span class="toc-text">8.4 Feature-Based versus Direct Methods</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-5-Direct-Methods-for-Multi-view-Reconstruction"><span class="toc-number">1.5.</span> <span class="toc-text">8.5 Direct Methods for Multi-view Reconstruction</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-6-Realtime-Dense-Geometry-from-a-Handheld-Cameara"><span class="toc-number">1.6.</span> <span class="toc-text">8.6 Realtime Dense Geometry from a Handheld Cameara</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-7-Dense-RGB-D-Tracking"><span class="toc-number">1.7.</span> <span class="toc-text">8.7 Dense RGB-D Tracking</span></a></li></ol></li></ol></div></div><div class="card-widget card-weibo"><div class="card-content"><div class="item-headline"><i class="fab fa-weibo"></i><span>微博热搜</span></div><div id="weibo-container" style="width: 100%; height: 150px;font-size: 95%;"></div></div></div><script defer="defer" data-pjax="data-pjax" src="/js/card_weibo.js"></script><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/03/22/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%85%AB%EF%BC%89/" title="多视图几何（八）"><img src="/img/MVG-8-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="多视图几何（八）"/></a><div class="content"><a class="title" href="/2022/03/22/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%85%AB%EF%BC%89/" title="多视图几何（八）">多视图几何（八）</a><time datetime="2022-03-22T13:26:10.000Z" title="发表于 2022-03-22 21:26:10">2022-03-22</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/03/16/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%83%EF%BC%89/" title="多视图几何（七）"><img src="/img/MVG-7-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="多视图几何（七）"/></a><div class="content"><a class="title" href="/2022/03/16/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%B8%83%EF%BC%89/" title="多视图几何（七）">多视图几何（七）</a><time datetime="2022-03-16T11:44:07.000Z" title="发表于 2022-03-16 19:44:07">2022-03-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/03/09/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%85%AD%EF%BC%89/" title="多视图几何（六）"><img src="/img/MVG-5-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="多视图几何（六）"/></a><div class="content"><a class="title" href="/2022/03/09/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%85%AD%EF%BC%89/" title="多视图几何（六）">多视图几何（六）</a><time datetime="2022-03-09T08:15:24.000Z" title="发表于 2022-03-09 16:15:24">2022-03-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%94%EF%BC%89/" title="多视图几何（五）"><img src="/img/MVG-5-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="多视图几何（五）"/></a><div class="content"><a class="title" href="/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E4%BA%94%EF%BC%89/" title="多视图几何（五）">多视图几何（五）</a><time datetime="2022-02-28T07:02:52.000Z" title="发表于 2022-02-28 15:02:52">2022-02-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%9B%9B%EF%BC%89/" title="多视图几何（四）"><img src="/img/MVG-4-cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="多视图几何（四）"/></a><div class="content"><a class="title" href="/2022/02/28/%E5%A4%9A%E8%A7%86%E5%9B%BE%E5%87%A0%E4%BD%95%EF%BC%88%E5%9B%9B%EF%BC%89/" title="多视图几何（四）">多视图几何（四）</a><time datetime="2022-02-28T06:43:44.000Z" title="发表于 2022-02-28 14:43:44">2022-02-28</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/MVG-8-cover.png')"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By KMnO4</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font-plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font-minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"><script>if (!window.MathJax) {
+  window.MathJax = {
+    tex: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"]],
+      tags: 'ams'
+    },
+    chtml: {
+      scale: 1.2
+    },
+    options: {
+      renderActions: {
+        findScript: [10, doc => {
+          for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+            const display = !!node.type.match(/; *mode=display/)
+            const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+            const text = document.createTextNode('')
+            node.parentNode.replaceChild(text, node)
+            math.start = {node: text, delim: '', n: 0}
+            math.end = {node: text, delim: '', n: 0}
+            doc.math.push(math)
+          }
+        }, ''],
+        insertScript: [200, () => {
+          document.querySelectorAll('mjx-container:not\([display]\)').forEach(node => {
+            const target = node.parentNode
+            if (target.nodeName.toLowerCase() === 'li') {
+              target.parentNode.classList.add('has-jax')
+            } else {
+              target.classList.add('has-jax')
+            }
+          });
+        }, '', false]
+      }
+    }
+  }
+  
+  const script = document.createElement('script')
+  script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js'
+  script.id = 'MathJax-script'
+  script.async = true
+  document.head.appendChild(script)
+} else {
+  MathJax.startup.document.state(0)
+  MathJax.texReset()
+  MathJax.typeset()
+}</script><script>function addGitalkSource () {
+  const ele = document.createElement('link')
+  ele.rel = 'stylesheet'
+  ele.href= 'https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css'
+  document.getElementsByTagName('head')[0].appendChild(ele)
+}
+
+function loadGitalk () {
+  function initGitalk () {
+    var gitalk = new Gitalk(Object.assign({
+      clientID: '60cf579829afb2b2cdf9',
+      clientSecret: '991dfac32f5e2bd0470bd4b8f5b8a2ef54e9b164',
+      repo: 'Wastoon.github.io',
+      owner: 'Wastoon',
+      admin: ['Wastoon'],
+      id: '25dd260b789929863a25c79ae86e8a98',
+      language: 'zh-CN',
+      perPage: 10,
+      distractionFreeMode: false,
+      pagerDirection: 'last',
+      createIssueManually: true,
+      updateCountCallback: commentCount
+    },false))
+
+    gitalk.render('gitalk-container')
+  }
+
+  if (typeof Gitalk === 'function') initGitalk()
+  else {
+    addGitalkSource()
+    getScript('https://cdn.jsdelivr.net/npm/gitalk@latest/dist/gitalk.min.js').then(initGitalk)
+  }
+}
+
+function commentCount(n){
+  let isCommentCount = document.querySelector('#post-meta .gitalk-comment-count')
+  if (isCommentCount) {
+    isCommentCount.innerHTML= n
+  }
+}
+
+if ('Gitalk' === 'Gitalk' || !true) {
+  if (true) btf.loadComment(document.getElementById('gitalk-container'), loadGitalk)
+  else loadGitalk()
+} else {
+  function loadOtherComment () {
+    loadGitalk()
+  }
+}</script></div><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="true"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-show-text.min.js" data-mobile="false" data-text="I,Miss,You" data-fontsize="15px" data-random="false" async="async"></script><script>((window.gitter = {}).chat = {}).options = {
+  disableDefaultChat: true,
+};
+document.addEventListener('gitter-sidecar-ready', (e) => {
+  const GitterChat = e.detail.Chat
+  let chat
+
+  function initGitter () {
+    chat = new GitterChat({
+      room: 'OMGsitetalk/community',
+      activationElement: '#chat_btn'
+    });
+  }
+
+  initGitter()
+
+  if (false) {
+    document.addEventListener('pjax:complete', () => {
+      chat.destroy()
+      initGitter()
+    })
+  }
+
+})</script><script src="https://sidecar.gitter.im/dist/sidecar.v1.js" async="async" defer="defer"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_clock_injector_config(){
+    var parent_div_git = document.getElementsByClassName('sticky_layout')[0];
+    var item_html = '<div class="card-widget card-clock"><div class="card-glass"><div class="card-background"><div class="card-content"><div id="hexo_electric_clock"><img class="entered loading" id="card-clock-loading" src="https://cdn.jsdelivr.net/gh/tzy13755126023/BLOG_SOURCE/theme_f/loading.gif" style="height: 120px; width: 100%;" data-ll-status="loading"/></div></div></div></div></div>';
+    console.log('已挂载butterfly_clock')
+    parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+    }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var flag = 0;
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_clock_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_clock_injector_config();
+  }
+  </script><script src="https://pv.sohu.com/cityjson?ie=utf-8"></script><script data-pjax src="https://cdn.jsdelivr.net/npm/hexo-butterfly-clock/lib/clock.min.js"></script><script async src="//at.alicdn.com/t/font_2032782_8d5kxvn09md.js"></script><script data-pjax src="https://cdn.jsdelivr.net/npm/hexo-filter-gitcalendar/lib/gitcalendar.js"></script><script data-pjax>
+                        function gitcalendar_injector_config(){
+                          var parent_div_git = document.getElementById('recent-posts');
+                          var item_html = '<div class="recent-post-item" style="width:100%;height:auto;padding:10px;"><style>#git_container{min-height: 280px}@media screen and (max-width:650px) {#git_container{min-height: 0px}}</style><div id="git_loading" style="width:10%;height:100%;margin:0 auto;display: block;"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 50 50" style="enable-background:new 0 0 50 50" xml:space="preserve"><path fill="#d0d0d0" d="M25.251,6.461c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615V6.461z" transform="rotate(275.098 25 25)"><animatetransform attributeType="xml" attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="0.6s" repeatCount="indefinite"></animatetransform></path></svg><style>#git_container{display: none;}</style></div><div id="git_container"></div></div>';
+                          parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+                          console.log('已挂载gitcalendar')
+                          }
+
+                        if( document.getElementById('recent-posts') && (location.pathname ==='/'|| '/' ==='all')){
+                            gitcalendar_injector_config()
+                            GitCalendarInit("https://gitcalendar.akilar.top/api?Wastoon",['#ebedf0', '#fdcdec', '#fc9bd9', '#fa6ac5', '#f838b2', '#f5089f', '#c4067e', '#92055e', '#540336', '#48022f', '#30021f'],'Wastoon')
+                        }
+                      </script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body></html>
